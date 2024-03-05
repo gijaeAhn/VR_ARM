@@ -13,12 +13,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_TOOLCHAIN_FILE=${HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake)
 
-set(RMD_DRIVER_LIBRARIES "")
-target_link_libraries(rmd_driver ${RMD_DRIVER_LIBRARIES})
-target_include_directories(rmd_driver PUBLIC include)
 
 
-add_library(myactuator_rmd SHARED
+
+add_library(rmd_driver SHARED
         src/can/node.cpp
         src/can/utilities.cpp
         src/protocol/request.cpp
@@ -28,7 +26,9 @@ add_library(myactuator_rmd SHARED
         include/meta/version.hpp
 )
 
-
+set(RMD_DRIVER_LIBRARIES "")
+target_link_libraries(rmd_driver ${RMD_DRIVER_LIBRARIES})
+target_include_directories(rmd_driver PUBLIC include)
 
 if(PYTHON_BINDINGS)
     #Please Set Correct Pybind Directory
