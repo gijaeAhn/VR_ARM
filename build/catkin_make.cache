@@ -1,0 +1,2 @@
+dependencies/dynamixel_interface:dependencies/dynamixel_sdk
+-DCATKIN_DEVEL_PREFIX=/home/sj/Desktop/VR_ARM/devel -DCMAKE_INSTALL_PREFIX=/home/sj/Desktop/VR_ARM/install -G Unix Makefiles
