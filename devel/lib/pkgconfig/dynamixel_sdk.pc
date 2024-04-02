@@ -1,8 +1,0 @@
-prefix=/home/sj/Desktop/VR_ARM/devel
-
-Name: dynamixel_sdk
-Description: Description of dynamixel_sdk
-Version: 3.7.51
-Cflags: -I/home/sj/Desktop/VR_ARM/src/dependencies/dynamixel_sdk/include
-Libs: -L${prefix}/lib -ldynamixel_sdk
-Requires: roscpp rospy

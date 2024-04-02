@@ -5,10 +5,11 @@
 #include "driver.hpp"
 #include "feedback.hpp"
 #include "motor_status.hpp"
-#include "node.hpp"
-#include "request.hpp"
-#include "response.hpp"
 #include "exceptions.hpp"
+
+#include "protocol/node.hpp"
+#include "protocol/request.hpp"
+#include "protocol/response.hpp"
 
 
 namespace rmd_driver{
@@ -48,10 +49,6 @@ namespace rmd_driver{
         [[maybe_unused]] auto const response {sendRecv<StopMotorResponse>(actuator_id,request)};
         return;
     }
-
-
-
-
 
 
 }

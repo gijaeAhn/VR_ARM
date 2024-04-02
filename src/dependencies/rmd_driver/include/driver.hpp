@@ -44,6 +44,12 @@ namespace rmd_driver{
         Feedback sendTorqueSetpoint(std::uint32_t actuator_id, float const current);
 
 
+        void shutdownMotor(std::uint32_t actuator_id);
+
+        
+        void stopMotor(std::uint32_t actuator_id);
+
+
 
     };
 }

@@ -29,6 +29,7 @@
 #include "can/node.hpp"
 #include "can/frame.hpp"
 #include "can/utilities.hpp"
+#include "can/can_exception.hpp"
 
 
 
@@ -116,7 +117,7 @@ namespace rmd_driver{
 
             std::array<std::uint8_t,8> data {};
             std::copy(std::begin(frame.data), std::end(frame.data), std::begin(data));
-            Frame const f {frame.can_id, data};
+            Frame const f{frame.can_id, data};
             return f;
         }
 

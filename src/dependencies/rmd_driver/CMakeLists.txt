@@ -22,7 +22,7 @@ add_library(rmd_driver SHARED
         src/protocol/request.cpp
         src/protocol/response.cpp
         src/driver.cpp
-        include/meta/motorPara.hpp
+        include/meta/motorParam.hpp
         include/meta/version.hpp
 )
 
@@ -37,8 +37,8 @@ if(PYTHON_BINDINGS)
     # Set pybind cmake directory
     find_package(pybind11 REQUIRED )
     pybind11_add_module(pymyactuator_rmd bindings/myactuator_rmd.cpp)
-    target_link_libraries(pymyactuator_rmd PRIVATE myactuator_rmd)
-    set_target_properties(pymyactuator_rmd PROPERTIES OUTPUT_NAME myactuator_rmd)
+    target_link_libraries(pymyactuator_rmd PRIVATE rmd_driver)
+    set_target_properties(pymyactuator_rmd PROPERTIES OUTPUT_NAME rmd_driver_py)
 
     install(TARGETS
             pymyactuator_rmd
