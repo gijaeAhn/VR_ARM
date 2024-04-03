@@ -6,6 +6,7 @@
 #define VR_ARM_PARSER_HPP
 #pragma once
 
+namespace utilities{
 
 namespace parser{
 
@@ -34,7 +35,7 @@ namespace parser{
 
 }
 
-
+}
 
 
 

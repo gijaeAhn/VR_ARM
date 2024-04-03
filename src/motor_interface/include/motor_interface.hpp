@@ -31,7 +31,7 @@ namespace motor_interface {
         MotorInterface(MotorInterface&&) = default;
 
 
-        void setTorque(std::array<float> torque_list);
+        void setTorque(std::array<float,ROBOT_MOTOR_SIZE> torque_list);
         void displayDebug();
         
 
@@ -39,18 +39,18 @@ namespace motor_interface {
         private :
 
         MotorConfig motorconfig_;
-        memory::SHM<float> RMD_SHM;
-        memory::SHM<float> DYNAMIXEL_SHM;
-        memory::SHM<std::uint8_t> RMD_DEBUG_SHM;
-        memory::SHM<std::uint8_t> DYNAMIXEL_DEBUG_SHM;
+        utilities::memory::SHM<float> RMD_TORQUE_SHM;
+        utilities::memory::SHM<float> DYNAMIXEL_TORQUE_SHM;
+        utilities::memory::SHM<std::uint8_t> RMD_DEBUG_SHM;
+        utilities::memory::SHM<std::uint8_t> DYNAMIXEL_DEBUG_SHM;
 
         std::array<float,ROBOT_MOTOR_SIZE> torque_list_;
-        std::array<float,RMD_MOTOR_SIZE>  rmd_set;
-        std::array<float,DYNMAIXEL_MOTOR_SIZE>  dyna_set;
-        Timer timer;
+        std::array<float,RMD_MOTOR_SIZE  >  rmd_set;
+        std::array<float,DYNAMIXEL_MOTOR_SIZE>  dyna_set;
+        utilities::Timer timer;
 
-        uint8_t rmd_debug_;
-        uint8_t dynamxiel_debug_;
+        uint8_t rmd_debug_[1];
+        uint8_t dynamxiel_debug_[1];
     };
 
 

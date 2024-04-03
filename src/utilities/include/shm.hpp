@@ -33,7 +33,7 @@
 #define  ROBOT_MOTOR_SIZE              6
 #define  MOTORINIT_TIME                5
 
-
+namespace utilities{
 
 namespace memory {
 
@@ -162,7 +162,7 @@ namespace memory {
 }
 
 
-
+}
 
 
 

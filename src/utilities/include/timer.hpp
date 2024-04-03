@@ -9,7 +9,7 @@
 #include <chrono>
 #include <tbb/tick_count.h>
 
-
+namespace utilities{
 
 struct Timer{
 
@@ -49,5 +49,7 @@ struct Timer{
     }
 };
 
+
+}
 
 #endif //VR_ARM_TIMER_HPP

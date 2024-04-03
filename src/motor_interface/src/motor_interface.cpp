@@ -29,8 +29,10 @@ namespace motor_interface{
         for(int i = RMD_MOTOR_SIZE; i < DYNAMIXEL_MOTOR_SIZE; i++){
             dyna_set[i] = torque_list_[i];
         }
-        RMD_SHM.SHM_WRITE(rmd_set);
-        DYNAMIXEL_SHM.SHM_WRITE(dyna_set);
+
+
+        RMD_TORQUE_SHM.SHM_WRITE(rmd_temp);
+        DYNAMIXEL_TORQUE_SHM.SHM_WRITE(temp);
 
 
         RMD_DEBUG_SHM.SHM_READ(rmd_debug_);
