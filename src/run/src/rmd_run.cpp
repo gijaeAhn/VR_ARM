@@ -5,13 +5,13 @@
 
 
 
-#include "dependencies/rmd_driver/include/driver.hpp"
-#include "dependencies/rmd_driver/include/feedback.hpp"
-#include "dependencies/rmd_driver/include/meta/motorParam.hpp"
+#include "driver.hpp"
+#include "feedback.hpp"
+#include "meta/motorParam.hpp"
 
 
-#include "utilities/include/shm.hpp"
-#include "utilities/include/timer.hpp"
+#include "shm.hpp"
+#include "timer.hpp"
 
 
 
@@ -36,17 +36,18 @@ void signalHandler(int signum);
 
 int main(int argc, char *argv[])
 {   
+    printf("Debug SHM INIT ");
     std::string driver_name(argv[1]);
     std::signal(SIGINT, signalHandler);
-    std::signal(SIGTERM,signalHandler);
+
 
     utilities::Timer timer;
     timer.next_execution = std::chrono::steady_clock::now();
     rmd_driver::Driver driver(driver_name);
 
     std::array<rmd_driver::Feedback,RMD_MOTOR_SIZE> bufFeed;
-    std::array<uint8_t,RMD_MOTOR_SIZE> currentShaft{0};
-    std::array<uint8_t,RMD_MOTOR_SIZE> previousShaft{0};
+    std::array<float,RMD_MOTOR_SIZE> currentShaft{0};
+    std::array<float,RMD_MOTOR_SIZE> previousShaft{0};
     std::array<float, RMD_MOTOR_SIZE> shaftChange{};
 
     // BUFFER FOR SHM
@@ -63,11 +64,12 @@ int main(int argc, char *argv[])
         driver.addMotor(index + MOTOR_ID_OFFSET);
         driver.MotorRunning(index + MOTOR_ID_OFFSET);
         auto buf = rmd_driver::Feedback{driver.sendTorqueSetpoint(index + MOTOR_ID_OFFSET, 0)};
-        previousShaft[index] = buf.shaft_angle; // Make sure previousShaft has at least ROBOT_MEM_SIZE elements
+        previousShaft[index] = buf.getShaft(); // Make sure previousShaft has at least ROBOT_MEM_SIZE elements
         angBuffer[index] = 0.0f;
         velBuffer[index] = 0.0f;
         shaftChange[index] = 0.0f;
         sleep(MOTORINIT_TIME);
+        printf("Debug MOTOR INIT  %ld", index);
     }
     
 
@@ -86,6 +88,8 @@ int main(int argc, char *argv[])
     std::uint16_t freqSample =  300;
     auto cycleStarttime = std::chrono::steady_clock::now(); 
 
+
+    
     //System should be seized when signal come in
     while(true){
         freqCalc ++;
@@ -96,7 +100,7 @@ int main(int argc, char *argv[])
                 sumBuffer[index] = std::clamp(sumBuffer[index], -10.0f, 10.0f);
                 bufFeed[index] = driver.sendTorqueSetpoint(index+MOTOR_ID_OFFSET,sumBuffer[index]);
                 previousShaft[index] = currentShaft[index];
-                currentShaft[index] = bufFeed[index].shaft_angle;
+                currentShaft[index] = bufFeed[index].getShaft();
 
                 //Estimating current Angle
 
@@ -119,7 +123,7 @@ int main(int argc, char *argv[])
 
         if (freqCalc >= freqSample)
         {   
-            printf("Recieved Torque : %d", sumBuffer[0]);
+            printf("Recieved Torque : %f", sumBuffer[0]);
             auto cycleEndtime = std::chrono::steady_clock::now();
             std::chrono::duration<double> elapsed = cycleEndtime - cycleStarttime;
 

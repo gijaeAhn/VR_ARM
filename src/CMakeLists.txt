@@ -18,5 +18,5 @@ add_subdirectory(vr_interface)
 add_subdirectory(robot)
 add_subdirectory(utilities)
 add_subdirectory(test)
-#add_subdirectory(run)
+add_subdirectory(run)
 

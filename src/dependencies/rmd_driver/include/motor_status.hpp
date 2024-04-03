@@ -32,6 +32,7 @@ namespace rmd_driver{
         MotorStatus(MotorStatus&&) = default;
         MotorStatus& operator = (MotorStatus&&) = default;
 
+        float getShaft();
 
         protected :
 
@@ -45,6 +46,10 @@ namespace rmd_driver{
     MotorStatus::MotorStatus(const int temperature_, const float current_ , const float shaft_speed_, const float shaft_angle_ ) noexcept
     : temperature{temperature_}, current{current_}, shaft_speed{shaft_speed_}, shaft_angle{shaft_angle_} {
         return;
+    }
+
+    float MotorStatus::getShaft(){
+        return shaft_angle;
     }
 
 }
