@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.16.3)
 project(rmd_driver)
 
 
@@ -19,8 +19,6 @@ set(CMAKE_TOOLCHAIN_FILE=${HOME}/vcpkg/scripts/buildsystems/vcpkg.cmake)
 add_library(rmd_driver SHARED
         src/can/node.cpp
         src/can/utilities.cpp
-        src/protocol/request.cpp
-        src/protocol/response.cpp
         src/driver.cpp
         include/meta/motorParam.hpp
         include/meta/version.hpp

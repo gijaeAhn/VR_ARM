@@ -2,34 +2,9 @@
 // Created by gj on 24. 3. 4.
 //
 
-#include <algorithm>
-#include <array>
-#include <chrono>
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
-#include <cerrno>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <system_error>
 
-#include <linux/can.h>
-#include <linux/can/error.h>
-#include <linux/can/raw.h>
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <mutex>
 
 #include "can/node.hpp"
-#include "can/frame.hpp"
-#include "can/utilities.hpp"
-#include "can/can_exception.hpp"
 
 
 
@@ -117,7 +92,7 @@ namespace rmd_driver{
 
             std::array<std::uint8_t,8> data {};
             std::copy(std::begin(frame.data), std::end(frame.data), std::begin(data));
-            Frame const f{frame.can_id, data};
+            Frame const f(frame.can_id, data,true);
             return f;
         }
 

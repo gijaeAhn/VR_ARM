@@ -11,7 +11,7 @@
 
 #include "command_type.hpp"
 #include "message.hpp"
-#include "../can/can_exception.hpp"
+#include "can/can_exception.hpp"
 
 
 namespace rmd_driver{
@@ -22,7 +22,7 @@ namespace rmd_driver{
 
     protected:
         SingleMotorMessage(std::array<std::uint8_t,8> const& data);
-        SingleMotorMessage() noexcept;
+        SingleMotorMessage() ;
         SingleMotorMessage(SingleMotorMessage const&) = default;
         SingleMotorMessage& operator = (SingleMotorMessage const&) = default;
         SingleMotorMessage(SingleMotorMessage&&) = default;
@@ -35,9 +35,9 @@ namespace rmd_driver{
         return;}
 
     template <CommandType C>
-    constexpr SingleMotorMessage<C>::SingleMotorMessage() noexcept
+    SingleMotorMessage<C>::SingleMotorMessage() 
     : Message{} {
-        data_[0] = C;
+        data_[0] = static_cast<std::uint8_t>(C);
         return;}
 
     template <CommandType C>

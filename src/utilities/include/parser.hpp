@@ -12,20 +12,6 @@ namespace parser{
 
 
 
-    class Parser:{
-
-
-
-        public :
-
-
-
-        private :
-        
-
-    }
-
-
 
 
 

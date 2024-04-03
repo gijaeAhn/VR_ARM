@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 
     RMD_TORQUE_SHM.SHM_CREATE();
     RMD_DEBUG_SHM.SHM_CREATE();
-    RMD_DEBUG_SHM.SHM_CREATE();
+    RMD_ANGLE_SHM.SHM_CREATE();
 
     
 
@@ -118,11 +118,13 @@ int main(int argc, char *argv[])
         RMD_ANGLE_SHM.SHM_WRITE(angBuffer);
 
         if (freqCalc >= freqSample)
-        {
+        {   
+            printf("Recieved Torque : %d", sumBuffer[0]);
             auto cycleEndtime = std::chrono::steady_clock::now();
             std::chrono::duration<double> elapsed = cycleEndtime - cycleStarttime;
 
-            double frequency = static_cast<double>(freqSample) / elapsed.count(); // Calculate frequency
+            // Calculate frequency
+            double frequency = static_cast<double>(freqSample) / elapsed.count(); 
             std::cout << "Loop Frequency: " << frequency << " Hz" << std::endl;
 
             // Reset the counter and the start time for the next measurement

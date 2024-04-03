@@ -13,7 +13,7 @@
 namespace rmd_driver{
 
     SetTorqueRequest::SetTorqueRequest(float const current)
-            : SingleMotorRequest{} {
+    : SingleMotorRequest{} {
         if ((current < -20.0f) || (current > 20.0f)) {
             throw ValueRangeException("Current value '" + std::to_string(current) + "' out of range [-20.0, 20.0]");
         }

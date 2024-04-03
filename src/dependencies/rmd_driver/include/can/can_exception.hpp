@@ -6,6 +6,8 @@
 #define RMD_DRIVER_CAN_EXCEPTION_HPP
 #pragma once
 
+#include <stdexcept>
+#include <system_error>
 
 namespace rmd_driver{
     namespace can{

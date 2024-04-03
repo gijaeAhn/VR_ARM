@@ -9,6 +9,7 @@
 #include "command_type.hpp"
 #include "message.hpp"
 #include "single_motor_message.hpp"
+#include "feedback.hpp"
 
 namespace rmd_driver {
 
@@ -39,6 +40,9 @@ namespace rmd_driver {
     }
 
     using SetTorqueResponse = FeedbackResponse<CommandType::TORQUE_CLOSED_LOOP_CONTROL>;
+    using ShutdownMotorResponse = SingleMotorResponse<CommandType::SHUTDOWN_MOTOR>;
+    using StopMotorResponse = SingleMotorResponse<CommandType::STOP_MOTOR>;
+    using MotorRunningResponse = SingleMotorResponse<CommandType::MOTOR_RUNNING_COMMAND>;
 
 
 

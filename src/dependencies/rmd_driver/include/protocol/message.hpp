@@ -38,13 +38,12 @@ namespace rmd_driver{
 
 
         template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
-        void setAt(T const val, std::size_t, const i);
+        void setAt(T const val, std::size_t const i);
 
 
         template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
         T getAs(std::size_t const i) const;
 
-    private:
         std::array<std::uint8_t,8> data_;
     };
 

@@ -9,8 +9,13 @@
 #include <cstdint>
 #include <string>
 
-#include "motor_status.hpp"
 #include "protocol/node.hpp"
+#include "protocol/request.hpp"
+#include "protocol/response.hpp"
+
+#include "feedback.hpp"
+#include "motor_status.hpp"
+#include "exceptions.hpp"
 
 namespace rmd_driver{
     class Driver: protected Node {

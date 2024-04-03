@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 
-namespace myactuator_rmd {
+namespace rmd_driver {
 
     /**\class Exception
      * \brief
@@ -40,5 +40,5 @@ namespace myactuator_rmd {
 
 
 
-
+}
 #endif //RMD_DRIVER_EXCEPTIONS_HPP

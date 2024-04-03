@@ -21,8 +21,8 @@
 #define  DYNAMIXEL_DEBUG_KEY        1004
 
 
-#define  RMD_MOTOR_SIZE                3    
-#define  DYNAMIXEL_MOTOR_SIZE          3    
+#define  RMD_MOTOR_SIZE                1    
+#define  DYNAMIXEL_MOTOR_SIZE          1    
 
 #define  RMD_ANGLE_KEY              1005
 #define  DYNAMIXEL_ANGLE_KEY        1006
@@ -48,7 +48,7 @@ namespace memory {
 
         public :
 
-        SHM(uint8_t key, uint8_t size);
+        SHM(uint16_t key, uint8_t size);
         SHM() = delete;
 
         void SHM_GETID();
@@ -60,7 +60,7 @@ namespace memory {
     };
 
     template<typename T>
-    SHM<T>::SHM(uint8_t key, uint8_t size) : SHM_key(key), SHM_size(sizeof(T)*size), size_(size)
+    SHM<T>::SHM(uint16_t key, uint8_t size) : SHM_key(key), SHM_size(sizeof(T)*size), size_(size)
     {}
 
     template<typename T>

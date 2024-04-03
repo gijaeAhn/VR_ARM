@@ -4,13 +4,13 @@
 
 #ifndef RMD_DRIVER_MOTOR_STATUS_HPP
 #define RMD_DRIVER_MOTOR_STATUS_HPP
-#prama once
+#pragma once
 
 
 namespace rmd_driver{
 
 
-    class TMotorStatus {
+    class MotorStatus {
         public:
     /**\fn MotorStatus
        * \brief
@@ -26,14 +26,14 @@ namespace rmd_driver{
        *    The output shaft angle in degrees with a resolution of 1 deg and a maximum range of 32767
     */
 
-        MotorStatus(const int temperature_ =0, const float current_ = 0.0f; const float shaft_speed_ = 0.0f, const float shaft_angle_ = 0.0f) noexcept;
-        MotorStatus(MotorStatus2 const&) = default;
-        MotorStatus& operator = (MotorStatus2 const&) = default;
-        MotorStatus(MotorStatus2&&) = default;
-        MotorStatus& operator = (MotorStatus2&&) = default;
+        MotorStatus(const int temperature_ =0, const float current_ = 0.0f, const float shaft_speed_ = 0.0f, const float shaft_angle_ = 0.0f) noexcept;
+        MotorStatus(MotorStatus const&) = default;
+        MotorStatus& operator = (MotorStatus const&) = default;
+        MotorStatus(MotorStatus&&) = default;
+        MotorStatus& operator = (MotorStatus&&) = default;
 
 
-        protected::
+        protected :
 
         int temperature;
         float current;
@@ -42,7 +42,7 @@ namespace rmd_driver{
     };
 
 
-    MotorStatus::MotorStatus(const int temperature_ =0, const float current_ = 0.0f; const float shaft_speed_ = 0.0f, const float shaft_angle_ = 0.0f) noexcept
+    MotorStatus::MotorStatus(const int temperature_, const float current_ , const float shaft_speed_, const float shaft_angle_ ) noexcept
     : temperature{temperature_}, current{current_}, shaft_speed{shaft_speed_}, shaft_angle{shaft_angle_} {
         return;
     }

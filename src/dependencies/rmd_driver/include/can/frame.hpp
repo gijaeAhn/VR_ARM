@@ -29,18 +29,17 @@ namespace rmd_driver{
             [[nodiscard]]
             constexpr std::array<std::uint8_t,8> getData() const noexcept;
 
-            [[nodiscard]]
             void setError() noexcept;
 
 
             protected:
 
             std::uint32_t can_id_;
-            std::array<uint32_t,8> data_;
+            std::array<uint8_t,8> data_;
             bool error_;
         };
 
-        Frame::Frame(std::uint32_t const can_id, std::array<uint32_t,8> const& data,bool error) noexcept
+        inline Frame::Frame(std::uint32_t const can_id, std::array<uint8_t,8> const& data,bool error) noexcept
         : can_id_{can_id}, data_{data}, error_{error}{
             return;
         }
