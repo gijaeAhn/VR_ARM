@@ -7,7 +7,7 @@
 
 #include "dependencies/rmd_driver/include/driver.hpp"
 #include "dependencies/dynamixel_sdk/include/dynamixel_sdk/dynamixel_sdk.h"
-#include "motor.hpp"
+#include "motor_interface/include/motor.hpp"
 #include "utilities/include/shm.hpp"
 
 

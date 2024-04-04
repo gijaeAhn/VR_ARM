@@ -1,10 +1,6 @@
 //
 // Created by gj on 24. 3. 5.
 //
-
-
-
-
 #include "driver.hpp"
 #include "feedback.hpp"
 #include "meta/motorParam.hpp"
