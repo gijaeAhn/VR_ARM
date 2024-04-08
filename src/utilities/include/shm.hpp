@@ -2,9 +2,7 @@
 // Created by gj on 24. 3. 5.
 //
 
-#ifndef VR_ARM_SHM_HPP
-#define VR_ARM_SHM_HPP
-#pragma once
+
 #include <iostream>
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -167,4 +165,4 @@ namespace memory {
 
 
 
-#endif //VR_ARM_SHM_HPP
+

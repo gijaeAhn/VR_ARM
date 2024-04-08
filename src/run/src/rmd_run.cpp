@@ -6,8 +6,8 @@
 #include "meta/motorParam.hpp"
 
 
-#include "shm.hpp"
-#include "timer.hpp"
+#include "utilities/include/shm.hpp"
+#include "utilities/include/timer.hpp"
 
 
 
@@ -23,28 +23,40 @@
 
 #define MOTOR_ID_OFFSET 1
 
+
+
+
+
 utilities::memory::SHM<float>           RMD_TORQUE_SHM(RMD_MOTOR_KEY,RMD_MOTOR_SIZE);
 utilities::memory::SHM<std::uint8_t>    RMD_DEBUG_SHM(RMD_DEBUG_KEY,RMD_MOTOR_SIZE);
 utilities::memory::SHM<float>           RMD_ANGLE_SHM(RMD_ANGLE_KEY,RMD_MOTOR_SIZE);
 
-void signalHandler(int signum);
+void signalHandler(int signum)
+{
+    std::cout << "Interrupt signal (" << signum << " ) recieved.\n" << std::endl; 
+    RMD_TORQUE_SHM.SHM_FREE();
+    RMD_DEBUG_SHM.SHM_FREE();
+    RMD_ANGLE_SHM.SHM_FREE();
+    std::exit(EXIT_SUCCESS);
+}
 
 
-int main(int argc, char *argv[])
-{   
-    printf("Debug SHM INIT ");
-    std::string driver_name(argv[1]);
+int main()
+{       
     std::signal(SIGINT, signalHandler);
+
+
+    
 
 
     utilities::Timer timer;
     timer.next_execution = std::chrono::steady_clock::now();
-    rmd_driver::Driver driver(driver_name);
+    rmd_driver::Driver driver("can0");
 
     std::array<rmd_driver::Feedback,RMD_MOTOR_SIZE> bufFeed;
     std::array<float,RMD_MOTOR_SIZE> currentShaft{0};
     std::array<float,RMD_MOTOR_SIZE> previousShaft{0};
-    std::array<float, RMD_MOTOR_SIZE> shaftChange{};
+    std::array<float, RMD_MOTOR_SIZE> shaftChange{0};
 
     // BUFFER FOR SHM
     float pidBuffer[RMD_MOTOR_SIZE];
@@ -52,6 +64,11 @@ int main(int argc, char *argv[])
     float sumBuffer[RMD_MOTOR_SIZE];
     float angBuffer[RMD_MOTOR_SIZE];
     float velBuffer[RMD_MOTOR_SIZE];
+
+    RMD_TORQUE_SHM.SHM_CREATE();
+    RMD_DEBUG_SHM.SHM_CREATE();
+    RMD_ANGLE_SHM.SHM_CREATE();
+
     
 
     // INIT MOTORS
@@ -70,14 +87,11 @@ int main(int argc, char *argv[])
     
 
 
-    RMD_TORQUE_SHM.SHM_CREATE();
-    RMD_DEBUG_SHM.SHM_CREATE();
-    RMD_ANGLE_SHM.SHM_CREATE();
-
+    
     
 
     //READ HOME ANGLE CONFIGURATION
-    RMD_ANGLE_SHM.SHM_READ(angBuffer);
+    //RMD_ANGLE_SHM.SHM_READ(angBuffer);
 
     //FOR REALTIME FREQ CALC
     std::uint16_t freqCalc = 0;
@@ -89,11 +103,11 @@ int main(int argc, char *argv[])
     //System should be seized when signal come in
     while(true){
         freqCalc ++;
-        RMD_TORQUE_SHM.SHM_READ(sumBuffer);
+        // RMD_TORQUE_SHM.SHM_READ(sumBuffer);
 
             for(std::uint8_t index; index < RMD_MOTOR_SIZE; index++)
             {
-                sumBuffer[index] = std::clamp(sumBuffer[index], -10.0f, 10.0f);
+                sumBuffer[index] = clamp(sumBuffer[index], -10.0f, 10.0f);
                 bufFeed[index] = driver.sendTorqueSetpoint(index+MOTOR_ID_OFFSET,sumBuffer[index]);
                 previousShaft[index] = currentShaft[index];
                 currentShaft[index] = bufFeed[index].getShaft();
@@ -137,14 +151,7 @@ int main(int argc, char *argv[])
 }
 
 
-void signalHandler(int signum)
-{
-    std::cout << "Interrupt signal (" << signum << " ) recieved.\n" << std::endl; 
-    RMD_TORQUE_SHM.SHM_FREE();
-    RMD_DEBUG_SHM.SHM_FREE();
-    RMD_ANGLE_SHM.SHM_FREE();
-    std::exit(signum);
-}
+
 
 
 

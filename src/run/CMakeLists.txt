@@ -36,13 +36,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_executable(rmd_run src/rmd_run.cpp)
 
+
+target_include_directories(rmd_run PRIVATE    ${ROOT_DIRECTORY})
+
 target_link_libraries(rmd_run
                       rmd_driver
                       utilities)
-target_include_directories(rmd_run PUBLIC
-                           ${CMAKE_CURRENT_SOURCE_DIR}/include 
-                           ${rmd_driver_SOURCE_DIR}/include 
-                           ${utilities_SOURCE_DIR}/include
-)
+
+
+
 
 target_compile_features(rmd_run PRIVATE cxx_std_17)
