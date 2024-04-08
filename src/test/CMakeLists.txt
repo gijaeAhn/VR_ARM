@@ -14,8 +14,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 
 
-add_executable(rmd_test src/rmd_test.cpp)
 
+
+
+
+#RMD TEST
+
+add_executable(rmd_test       src/rmd_test.cpp)
 target_include_directories(rmd_test PUBLIC 
                           ${CMAKE_SOURCE_DIR}
                           ${rmd_driver_SOURCE_DIR}/include 
@@ -23,3 +28,32 @@ target_include_directories(rmd_test PUBLIC
 
 target_link_libraries(rmd_test PUBLIC
                       rmd_driver)  
+
+
+
+#DYNAMIXEL TEST
+add_executable(dynamixel_test src/dynamixel_test.cpp)
+target_include_directories(dynamixel_test PUBLIC
+                          ${ROOT_DIRECTORY}
+                          ${dynamixel_sdk_SOURCE_DIR}/include )
+                          
+target_link_libraries(dynamixel_test PUBLIC
+                      dynamixel_sdk)
+
+
+
+
+add_executable(shm_1 src/shm_test1.cpp)
+target_include_directories(shm_1 PUBLIC
+                          ${ROOT_DIRECTORY}
+)
+                          
+
+add_executable(shm_2 src/shm_test2.cpp)
+target_include_directories(shm_2 PUBLIC
+                          ${ROOT_DIRECTORY}
+)
+
+
+
+

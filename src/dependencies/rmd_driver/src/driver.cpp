@@ -11,6 +11,7 @@ namespace rmd_driver{
 
     Driver::Driver(std::string const& ifname)
             : Node{ifname} {
+                printf("Init rmd driver\n");
         return;
     }
 
@@ -21,7 +22,7 @@ namespace rmd_driver{
 
     void Driver::MotorRunning(std::uint32_t actuator_id){
         MotorRunningRequest const request {};
-        [[maybe_unused]] auto const response {sendRecv<MotorRunningResponse>(actuator_id,request)};
+        auto const response {sendRecv<MotorRunningResponse>(actuator_id,request)};
         return;
     }
 
@@ -34,13 +35,13 @@ namespace rmd_driver{
 
     void Driver::shutdownMotor(std::uint32_t actuator_id) {
         ShutdownMotorRequest const request {};
-        [[maybe_unused]] auto const response {sendRecv<ShutdownMotorResponse>(actuator_id,request)};
+        auto const response {sendRecv<ShutdownMotorResponse>(actuator_id,request)};
         return;
     }
 
     void Driver::stopMotor(std::uint32_t actuator_id) {
         StopMotorRequest const request {};
-        [[maybe_unused]] auto const response {sendRecv<StopMotorResponse>(actuator_id,request)};
+        auto const response {sendRecv<StopMotorResponse>(actuator_id,request)};
         return;
     }
 

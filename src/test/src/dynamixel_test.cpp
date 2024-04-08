@@ -11,7 +11,7 @@
 #include "dependencies/dynamixel_sdk/include/dynamixel_sdk/dynamixel_sdk.h"
 //Utilities
 #include "utilities/include/shm.hpp"
-#include "utilites/include/timer.hpp"
+
 
 
 #include <stdlib.h>

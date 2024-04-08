@@ -22,6 +22,7 @@
 #include <csignal>
 
 #define MOTOR_ID_OFFSET 1
+#define MOTOR_INIT_TIME 1
 
 
 
@@ -33,7 +34,8 @@ utilities::memory::SHM<float>           RMD_ANGLE_SHM(RMD_ANGLE_KEY,RMD_MOTOR_SI
 
 void signalHandler(int signum)
 {
-    std::cout << "Interrupt signal (" << signum << " ) recieved.\n" << std::endl; 
+    // std::cout << "Interrupt signal (" << signum << " ) recieved.\n" << std::endl; 
+    printf("Interrupt signal (%d) recieve.\n", signum);
     RMD_TORQUE_SHM.SHM_FREE();
     RMD_DEBUG_SHM.SHM_FREE();
     RMD_ANGLE_SHM.SHM_FREE();
@@ -47,16 +49,18 @@ int main()
 
 
     
-
+    RMD_TORQUE_SHM.SHM_CREATE();
+    RMD_DEBUG_SHM.SHM_CREATE();
+    RMD_ANGLE_SHM.SHM_CREATE();
 
     utilities::Timer timer;
     timer.next_execution = std::chrono::steady_clock::now();
     rmd_driver::Driver driver("can0");
 
     std::array<rmd_driver::Feedback,RMD_MOTOR_SIZE> bufFeed;
-    std::array<float,RMD_MOTOR_SIZE> currentShaft{0};
-    std::array<float,RMD_MOTOR_SIZE> previousShaft{0};
-    std::array<float, RMD_MOTOR_SIZE> shaftChange{0};
+    float currentShaft[RMD_MOTOR_SIZE] ={0};
+    float previousShaft[RMD_MOTOR_SIZE]={0};
+    float shaftChange[RMD_MOTOR_SIZE]  ={0};
 
     // BUFFER FOR SHM
     float pidBuffer[RMD_MOTOR_SIZE];
@@ -65,33 +69,33 @@ int main()
     float angBuffer[RMD_MOTOR_SIZE];
     float velBuffer[RMD_MOTOR_SIZE];
 
-    RMD_TORQUE_SHM.SHM_CREATE();
-    RMD_DEBUG_SHM.SHM_CREATE();
-    RMD_ANGLE_SHM.SHM_CREATE();
 
     
-
     // INIT MOTORS
     // SLEEP MOTOR * MOTOR INIT TIME
-    for (std::size_t index = 0; index < ROBOT_MOTOR_SIZE; ++index) {
+    for (int index = 0; index < RMD_MOTOR_SIZE; index++) {
         driver.addMotor(index + MOTOR_ID_OFFSET);
         driver.MotorRunning(index + MOTOR_ID_OFFSET);
+        printf("Motor %d running", index+MOTOR_ID_OFFSET);
         auto buf = rmd_driver::Feedback{driver.sendTorqueSetpoint(index + MOTOR_ID_OFFSET, 0)};
         previousShaft[index] = buf.getShaft(); // Make sure previousShaft has at least ROBOT_MEM_SIZE elements
+        pidBuffer[index] = 0.0f;
+        gravBuffe[index] = 0.0f;
+        sumBuffer[index] = 0.0f;
         angBuffer[index] = 0.0f;
         velBuffer[index] = 0.0f;
         shaftChange[index] = 0.0f;
-        sleep(MOTORINIT_TIME);
-        printf("Debug MOTOR INIT  %ld", index);
+        sleep(MOTOR_INIT_TIME);
+        printf("Debug MOTOR INIT  %d", index);
     }
     
 
 
-    
+
     
 
     //READ HOME ANGLE CONFIGURATION
-    //RMD_ANGLE_SHM.SHM_READ(angBuffer);
+    RMD_ANGLE_SHM.SHM_READ(angBuffer);
 
     //FOR REALTIME FREQ CALC
     std::uint16_t freqCalc = 0;
@@ -103,11 +107,11 @@ int main()
     //System should be seized when signal come in
     while(true){
         freqCalc ++;
-        // RMD_TORQUE_SHM.SHM_READ(sumBuffer);
+        RMD_TORQUE_SHM.SHM_READ(sumBuffer);
 
-            for(std::uint8_t index; index < RMD_MOTOR_SIZE; index++)
+            for(int index=0; index < RMD_MOTOR_SIZE; index++)
             {
-                sumBuffer[index] = clamp(sumBuffer[index], -10.0f, 10.0f);
+                sumBuffer[index] = std::clamp(sumBuffer[index], -10.0f, 10.0f);
                 bufFeed[index] = driver.sendTorqueSetpoint(index+MOTOR_ID_OFFSET,sumBuffer[index]);
                 previousShaft[index] = currentShaft[index];
                 currentShaft[index] = bufFeed[index].getShaft();
@@ -133,13 +137,13 @@ int main()
 
         if (freqCalc >= freqSample)
         {   
-            printf("Recieved Torque : %f", sumBuffer[0]);
+            std::cout << "Recieved Torque : " << sumBuffer[0]  << std::endl;
             auto cycleEndtime = std::chrono::steady_clock::now();
             std::chrono::duration<double> elapsed = cycleEndtime - cycleStarttime;
 
             // Calculate frequency
             double frequency = static_cast<double>(freqSample) / elapsed.count(); 
-            std::cout << "Loop Frequency: " << frequency << " Hz" << std::endl;
+            
 
             // Reset the counter and the start time for the next measurement
             freqCalc = 0;
@@ -147,7 +151,6 @@ int main()
         }
     }
 
-    return 0;
 }
 
 

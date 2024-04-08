@@ -65,9 +65,9 @@ namespace rmd_driver {
 
         private:
 
-        std::vector<std::uint8_t> actuator_id_list_;
-        std::vector<std::uint8_t> can_send_id_list_;
-        std::vector<std::uint8_t> can_receive_id_list_;
+        std::vector<std::uint16_t> actuator_id_list_;
+        std::vector<std::uint16_t> can_send_id_list_;
+        std::vector<std::uint16_t> can_receive_id_list_;
 
 
     };
@@ -86,10 +86,15 @@ namespace rmd_driver {
             throw Exception("Given actuator id '" + std::to_string(actuator_id) + "' out of range [1, 32]!");
         }
 
+
+        printf("%x\n",id_offset_+actuator_id);
         actuator_id_list_.push_back(actuator_id);
         can_send_id_list_.push_back( id_offset_ + actuator_id) ;
+
         can_receive_id_list_.push_back( id_offset_ + actuator_id);
         setRecvFilter(can_receive_id_list_[actuator_id -1]);
+
+        printf("%x",can_send_id_list_[actuator_id-1]);
         return;
     }
 
@@ -100,6 +105,7 @@ namespace rmd_driver {
 
     template<typename RESPONSE_TYPE>
     RESPONSE_TYPE Node::sendRecv(std::uint32_t const actuator_id, Message const& message) {
+
         write(can_send_id_list_[actuator_id -1], message.getData());
         can::Frame const frame {can::Node::read(can_receive_id_list_[actuator_id-1])};
         RESPONSE_TYPE const response {frame.getData()};

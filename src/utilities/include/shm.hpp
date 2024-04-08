@@ -26,10 +26,10 @@
 #define  DYNAMIXEL_ANGLE_KEY        1006
 
 
-#define  POSITION_SET_KEY           1005
+#define  POSITION_SET_KEY           1007
 
 #define  ROBOT_MOTOR_SIZE              6
-#define  MOTORINIT_TIME                5
+#define  MOTORINIT_TIME                1
 
 namespace utilities{
 
@@ -39,14 +39,14 @@ namespace memory {
     class SHM
     {
         private:
-        uint8_t SHM_id;
-        uint8_t SHM_key;
-        uint8_t SHM_size;
-        uint8_t size_;
+        uint16_t SHM_id;
+        uint16_t SHM_key;
+        uint16_t SHM_size;
+        uint16_t size_;
 
-        public :
+        public :    
 
-        SHM(uint16_t key, uint8_t size);
+        SHM(uint16_t key, uint16_t size);
         SHM() = delete;
 
         void SHM_GETID();
@@ -58,31 +58,40 @@ namespace memory {
     };
 
     template<typename T>
-    SHM<T>::SHM(uint16_t key, uint8_t size) : SHM_key(key), SHM_size(sizeof(T)*size), size_(size)
-    {}
+    SHM<T>::SHM(uint16_t key, uint16_t size) : SHM_key(key), SHM_size(sizeof(T)*size), size_(size)
+    {
+
+        };
 
     template<typename T>
     void SHM<T>::SHM_GETID(){
-        if((SHM_id = shmget((key_t)SHM_key, 0, 0)) == -1)
+
+        
+        if((SHM_id = shmget((key_t)SHM_key, 0, 0666)) == -1)
         {
         perror("SHM_GETID : Failed to get SHM_ID");
         }
         printf("Success to get SHM_ID\n");
 
     }
+
+
     template<typename T>
     int SHM<T>::SHM_CREATE(){
+        printf("SHM_KEY %d\n", SHM_key);
+        printf("SHM_size %d\n", SHM_size);
+    
 
         if((SHM_id = shmget((key_t)SHM_key, SHM_size, IPC_CREAT| IPC_EXCL | 0666)) == -1) {
             printf("SHM_CREATE : SHM already exist.\n");
-            SHM_FREE();
             SHM_id = shmget((key_t)SHM_key, SHM_size, IPC_CREAT| 0666);
         
         if(SHM_id == -1)
         {
-            perror("SHM_CREATE : SHM create fail");
+            printf("SHM_CREATE : SHM create fail");
             return 1;
         }
+        printf("Success to Get SHM%d",SHM_key);
     }
     
     return 0;
@@ -92,21 +101,17 @@ namespace memory {
     template<typename T>
     int SHM<T>::SHM_WRITE(T* data)
     {
-        void *SHMaddr;
-        if(sizeof(data)>SHM_size)
+        void *SHMaddr = shmat(SHM_id,nullptr,0);
+
+        if(SHMaddr == (void *)-1) 
         {
-            perror("SHM_WRITE : Size over");
+            printf("SHM_WRITE : Shmat failed error condition 1");
             return 1;
         }
-        if((SHMaddr = shmat(SHM_id, (void *)0, 0)) == (void *)-1) 
-        {
-            perror("SHM_WRITE : Shmat failed");
-            return 1;
-        }
-        memcpy((float *)SHMaddr, data, SHM_size);
+        memcpy(SHMaddr, data, SHM_size);
         if(shmdt(SHMaddr) == -1) 
         {
-            perror("SHM_WRITE : Shmdt failed");
+            printf("SHM_WRITE : Shmdt failed error condition 2");
             return 1;
         }
     return 0;
@@ -117,20 +122,19 @@ namespace memory {
     template<typename T>
     int SHM<T>::SHM_READ(T* smemory)
     {
-        void *SHMaddr;
-        T mess[size_] = {0};
+        void *SHMaddr = shmat(SHM_id, nullptr,0);
         
-        if((SHMaddr = shmat(SHM_id, (void *)0, 0)) == (void *)-1)
+        if(SHMaddr == (void *)-1)
         {
-            perror("SHM_READ : Shmat failed");
+            printf("SHM_READ : Shmat failed error condition 1");
             return 1;
         }
         
-        memcpy(smemory, (T *)SHMaddr, SHM_size);
+        memcpy(smemory, SHMaddr, SHM_size);
         
         if(shmdt(SHMaddr) == -1)
         {
-            perror("SHM_READ : Shmdt failed");
+            printf("SHM_READ : Shmdt failed error condition 2");
             return 1;
         }
     return 0;
@@ -147,7 +151,7 @@ namespace memory {
         }
         if(shmctl(SHM_id, IPC_RMID, nullptr) == -1) 
         {
-            perror("SHM_FREE : Shmctl failed");
+            printf("SHM_FREE : Shmctl failed");
             return ;
         }
     
