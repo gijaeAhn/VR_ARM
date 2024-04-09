@@ -109,11 +109,11 @@ namespace memory {
             return 1;
         }
         memcpy(SHMaddr, data, SHM_size);
-        if(shmdt(SHMaddr) == -1) 
-        {
-            printf("SHM_WRITE : Shmdt failed error condition 2");
-            return 1;
-        }
+        // if(shmdt(SHMaddr) == -1) 
+        // {
+        //     printf("SHM_WRITE : Shmdt failed error condition 2");
+        //     return 1;
+        // }
     return 0;
 
     }
@@ -132,11 +132,11 @@ namespace memory {
         
         memcpy(smemory, SHMaddr, SHM_size);
         
-        if(shmdt(SHMaddr) == -1)
-        {
-            printf("SHM_READ : Shmdt failed error condition 2");
-            return 1;
-        }
+        // if(shmdt(SHMaddr) == -1)
+        // {
+        //     printf("SHM_READ : Shmdt failed error condition 2");
+        //     return 1;
+        // }
     return 0;
 
     }
