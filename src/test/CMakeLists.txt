@@ -13,12 +13,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 
-find_package(PkgConfig)
-pkg_check_modules(PC_ZeroMQ QUIET zmq)
+find_package(cppzmq CONFIG REQUIRED)
 
-set(ZeroMQ_INCLUDE_DIR
-        /usr/local/include
-        )
 
 
 
@@ -55,7 +51,6 @@ add_executable(shm_1 src/shm_test1.cpp)
 target_include_directories(shm_1 PUBLIC
                           ${ROOT_DIRECTORY}
 )
-target_link_libraries(shm_1 ${ZeroMQ_LIBRARIES})
 
 target_include_directories(shm_1 PUBLIC ${ZeroMQ_INCLUDE_DIR})
 
@@ -65,7 +60,6 @@ add_executable(shm_2 src/shm_test2.cpp)
 target_include_directories(shm_2 PUBLIC
                           ${ROOT_DIRECTORY}
 )
-target_link_libraries(shm_2 ${ZeroMQ_LIBRARIES})
 target_include_directories(shm_2 PUBLIC ${ZeroMQ_INCLUDE_DIR})
 
 
@@ -74,6 +68,9 @@ add_executable(shm_3 src/shm_test3.cpp)
 target_include_directories(shm_3 PUBLIC
                           ${ROOT_DIRECTORY}
 )
+
+target_link_libraries(shm_1 PRIVATE cppzmq cppzmq-static)
+target_link_libraries(shm_2 PRIVATE cppzmq cppzmq-static)
 
 
 

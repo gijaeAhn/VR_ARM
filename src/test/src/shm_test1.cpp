@@ -1,53 +1,8 @@
-// //
-// // Created by gj on 24. 4. 3.
-// //
-
-
-
-
-
-// #include "utilities/include/shm.hpp"
-
-// #include <vector>
-// #include <iostream>
-// #include <csignal>
-// #include <algorithm>
-// #include <cstdint>
-
-// utilities::memory::SHM<float> RMD_TORQUE_TEST_SHM(RMD_MOTOR_KEY,RMD_MOTOR_SIZE);
-
-
-// int main(int argc,char* argv[])
-// {
-
-//     RMD_TORQUE_TEST_SHM.SHM_GETID();
-
-
-
-//     float rmd_torque_test_buffer = 0.0f;
-
-//     while(true){
-
-
-
-//         RMD_TORQUE_TEST_SHM.SHM_READ(&rmd_torque_test_buffer);
-//         printf("test : %f", rmd_torque_test_buffer);
-
-//         sleep(1);
-
-
-        
-     
-//     }
-
-// }
-
-
-
 #include <zmq.hpp>
 #include <array>
 #include <iostream>
 #include <unistd.h> // For sleep()
+#include <chrono>
 
 int main() {
     zmq::context_t context(1);
@@ -59,14 +14,20 @@ int main() {
     std::array<float, 6> torque = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
 
     while (true) {
+        auto start = std::chrono::high_resolution_clock::now();
+        
         zmq::message_t message(torque.data(), torque.size() * sizeof(float));
         publisher.send(message, zmq::send_flags::none);
         
         std::cout << "Sent torque array." << std::endl;
 
-        sleep(1); // Wait a bit before sending the next message
+        sleep(0.001); // Wait a bit before sending the next message
+
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        double frequency = 1.0 / elapsed.count();
+
+        std::cout << "Actual frequency: " << frequency << " Hz" << std::endl;
     }
     return 0;
 }
-
-
