@@ -12,12 +12,10 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-
-find_package(cppzmq CONFIG REQUIRED)
-
+set(ZeroMQ_DIR "/home/gj/vcpkg/")
 
 
-
+find_package(ZeroMQ REQUIRED)
 
 
 
@@ -69,8 +67,8 @@ target_include_directories(shm_3 PUBLIC
                           ${ROOT_DIRECTORY}
 )
 
-target_link_libraries(shm_1 PRIVATE cppzmq cppzmq-static)
-target_link_libraries(shm_2 PRIVATE cppzmq cppzmq-static)
+target_link_libraries(shm_1 libzmq-static)
+target_link_libraries(shm_2 libzmq-static)
 
 
 
