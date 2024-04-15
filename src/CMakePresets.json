@@ -2,7 +2,7 @@
   "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 19,
+    "minor": 16,
     "patch": 0
   },
   "configurePresets": [
@@ -14,7 +14,7 @@
       "generator": "Unix Makefiles",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_TOOLCHAIN_FILE": "~/.conan2/build/Release/generators/conan_toolchain.cmake",
+        "CMAKE_TOOLCHAIN_FILE": "/home/sj/Desktop/VR_ARM/build/Release/generators/conan_toolchain.cmake",
         "CMAKE_INSTALL_PREFIX": "/path/to/install"
       }
     }

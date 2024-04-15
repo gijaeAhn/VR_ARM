@@ -45,30 +45,26 @@ target_link_libraries(dynamixel_test PUBLIC
 
 
 
-add_executable(shm_1 src/shm_test1.cpp)
-target_include_directories(shm_1 PUBLIC
+add_executable(zmq_1 src/zmq_test1.cpp)
+target_include_directories(zmq_1 PUBLIC
                           ${ROOT_DIRECTORY}
 )
 
-target_include_directories(shm_1 PUBLIC ${ZeroMQ_INCLUDE_DIR})
+target_include_directories(zmq_1 PUBLIC ${ZeroMQ_INCLUDE_DIR})
 
                           
 
-add_executable(shm_2 src/shm_test2.cpp)
-target_include_directories(shm_2 PUBLIC
+add_executable(zmq_2 src/zmq_test2.cpp)
+target_include_directories(zmq_2 PUBLIC
                           ${ROOT_DIRECTORY}
 )
-target_include_directories(shm_2 PUBLIC ${ZeroMQ_INCLUDE_DIR})
+target_include_directories(zmq_2 PUBLIC ${ZeroMQ_INCLUDE_DIR})
 
 
 
-add_executable(shm_3 src/shm_test3.cpp)
-target_include_directories(shm_3 PUBLIC
-                          ${ROOT_DIRECTORY}
-)
 
-target_link_libraries(shm_1 libzmq-static)
-target_link_libraries(shm_2 libzmq-static)
+target_link_libraries(zmq_1 libzmq-static)
+target_link_libraries(zmq_2 libzmq-static)
 
 
 
