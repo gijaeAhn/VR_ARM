@@ -5,10 +5,8 @@
 #include "feedback.hpp"
 #include "meta/motorParam.hpp"
 
-
-#include "utilities/include/shm.hpp"
 #include "utilities/include/timer.hpp"
-
+#include "utilities/include/shm.hpp"
 
 
 #include <stdint.h>
@@ -20,6 +18,14 @@
 #include <utility>
 #include <algorithm>
 #include <csignal>
+#include <zmq.hpp>
+#include <array>
+#include <iostream>
+#include <unistd.h>
+#include <chrono>
+#include <zmq.hpp>
+#include <cstring>
+
 
 #define MOTOR_ID_OFFSET 1
 #define MOTOR_INIT_TIME 1
@@ -28,17 +34,11 @@
 
 
 
-utilities::memory::SHM<float>           RMD_TORQUE_SHM(RMD_MOTOR_KEY,RMD_MOTOR_SIZE);
-utilities::memory::SHM<std::uint8_t>    RMD_DEBUG_SHM(RMD_DEBUG_KEY,RMD_MOTOR_SIZE);
-utilities::memory::SHM<float>           RMD_ANGLE_SHM(RMD_ANGLE_KEY,RMD_MOTOR_SIZE);
 
 void signalHandler(int signum)
 {
     // std::cout << "Interrupt signal (" << signum << " ) recieved.\n" << std::endl; 
     printf("Interrupt signal (%d) recieve.\n", signum);
-    RMD_TORQUE_SHM.SHM_FREE();
-    RMD_DEBUG_SHM.SHM_FREE();
-    RMD_ANGLE_SHM.SHM_FREE();
     std::exit(EXIT_SUCCESS);
 }
 
@@ -47,11 +47,19 @@ int main()
 {       
     std::signal(SIGINT, signalHandler);
 
+    //ZMQ Node SET
+    zmq::context_t context(1);
+    zmq::socket_t rmd_torque_subscriber(context,ZMQ_SUB);
+    zmq::socket_t rmd_angle_publisher(context,ZMQ_PUB);
 
-    
-    RMD_TORQUE_SHM.SHM_CREATE();
-    RMD_DEBUG_SHM.SHM_CREATE();
-    RMD_ANGLE_SHM.SHM_CREATE();
+
+    rmd_torque_subscriber.connect("tcp://localhost:5555");
+    rmd_angle_publisher.bind("tcp://*:5556");
+    rmd_torque_subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+
+    zmq::message_t angle_pub_mesage;
+    zmq::message_t torque_sub_message;
 
     utilities::Timer timer;
     timer.next_execution = std::chrono::steady_clock::now();
@@ -63,11 +71,10 @@ int main()
     float shaftChange[RMD_MOTOR_SIZE]  ={0};
 
     // BUFFER FOR SHM
-    float pidBuffer[RMD_MOTOR_SIZE];
-    float gravBuffe[RMD_MOTOR_SIZE];
-    float sumBuffer[RMD_MOTOR_SIZE];
-    float angBuffer[RMD_MOTOR_SIZE];
-    float velBuffer[RMD_MOTOR_SIZE];
+    float pidBuffer[RMD_MOTOR_SIZE]= {0};
+    float gravBuffe[RMD_MOTOR_SIZE]= {0};
+    float sumBuffer[RMD_MOTOR_SIZE]= {0};
+    float angBuffer[RMD_MOTOR_SIZE]= {0};
 
 
     
@@ -79,12 +86,6 @@ int main()
         printf("Motor %d running", index+MOTOR_ID_OFFSET);
         auto buf = rmd_driver::Feedback{driver.sendTorqueSetpoint(index + MOTOR_ID_OFFSET, 0)};
         previousShaft[index] = buf.getShaft(); // Make sure previousShaft has at least ROBOT_MEM_SIZE elements
-        pidBuffer[index] = 0.0f;
-        gravBuffe[index] = 0.0f;
-        sumBuffer[index] = 0.0f;
-        angBuffer[index] = 0.0f;
-        velBuffer[index] = 0.0f;
-        shaftChange[index] = 0.0f;
         sleep(MOTOR_INIT_TIME);
         printf("Debug MOTOR INIT  %d", index);
     }
@@ -95,19 +96,14 @@ int main()
     
 
     //READ HOME ANGLE CONFIGURATION
-    RMD_ANGLE_SHM.SHM_READ(angBuffer);
 
     //FOR REALTIME FREQ CALC
-    std::uint16_t freqCalc = 0;
-    std::uint16_t freqSample =  300;
     auto cycleStarttime = std::chrono::steady_clock::now(); 
 
 
     
     //System should be seized when signal come in
     while(true){
-        freqCalc ++;
-        RMD_TORQUE_SHM.SHM_READ(sumBuffer);
 
             for(int index=0; index < RMD_MOTOR_SIZE; index++)
             {
