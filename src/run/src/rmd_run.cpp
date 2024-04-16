@@ -55,8 +55,8 @@ int main(int argc, char* argv[])
         std::cout << "Device name: " << device_name << std::endl;
     } else {
         std::cout << "No device name provided." << std::endl;
+        return EXIT_FAILURE;
     }
-    return EXIT_FAILURE;
 
 
 
@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
         if (!result) {
         std::cerr << "Failed to receive message: " << std::endl;
         }
-        std::copy(sumBuffer.begin(),sumBuffer.end(),torque_sub_message.data());
+        std::copy(sumBuffer.begin(),sumBuffer.end(),static_cast<float*>(torque_sub_message.data()));
 
             for(int index=0; index < RMD_MOTOR_SIZE; index++)
             {
@@ -161,8 +161,8 @@ int main(int argc, char* argv[])
         if (angle_pub_message.size() >= sizeof(float) * RMD_MOTOR_SIZE) {
         //zmq::message_t data type == void*
         //Cause std::copy type problem 
-        
-        std::copy(temp_message_ptr,temp_message_ptr+);
+        float* temp_message_ptr = static_cast<float*>(angle_pub_message.data());
+        std::copy(temp_message_ptr,temp_message_ptr + RMD_MOTOR_SIZE,angBuffer.begin());
         rmd_angle_publisher.send(angle_pub_message,zmq::send_flags::none);
         } else {
             // Handle error: Not enough data

@@ -12,6 +12,8 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+find_package(ZeroMQ REQUIRED)
+
 
 # find_package(Threads REQUIRED)
 # find_package(Eigen3)
@@ -41,7 +43,8 @@ target_include_directories(rmd_run PRIVATE    ${ROOT_DIRECTORY})
 
 target_link_libraries(rmd_run
                       rmd_driver
-                      utilities)
+                      utilities
+                      libzmq-static)
 
 
 
