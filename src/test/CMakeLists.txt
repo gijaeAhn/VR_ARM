@@ -12,7 +12,6 @@ endif()
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(ZeroMQ_DIR "/home/gj/vcpkg/")
 
 
 find_package(ZeroMQ REQUIRED)
@@ -50,17 +49,11 @@ target_include_directories(zmq_1 PUBLIC
                           ${ROOT_DIRECTORY}
 )
 
-target_include_directories(zmq_1 PUBLIC ${ZeroMQ_INCLUDE_DIR})
-
-                          
 
 add_executable(zmq_2 src/zmq_test2.cpp)
 target_include_directories(zmq_2 PUBLIC
                           ${ROOT_DIRECTORY}
 )
-target_include_directories(zmq_2 PUBLIC ${ZeroMQ_INCLUDE_DIR})
-
-
 
 
 target_link_libraries(zmq_1 libzmq-static)

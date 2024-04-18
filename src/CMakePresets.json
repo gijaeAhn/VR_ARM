@@ -1,8 +1,9 @@
+
 {
   "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 16,
+    "minor": 23,
     "patch": 0
   },
   "configurePresets": [
@@ -10,12 +11,12 @@
       "name": "default",
       "description": "Use the release configuration with the Conan toolchain",
       "hidden": false,
-      "binaryDir": "${sourceDir}/build/bin",
+      "binaryDir": "${sourceDir}/../build/bin",
       "generator": "Unix Makefiles",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_TOOLCHAIN_FILE": "/home/sj/Desktop/VR_ARM/build/Release/generators/conan_toolchain.cmake",
-        "CMAKE_INSTALL_PREFIX": "/path/to/install"
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/../build/Release/generators/conan_toolchain.cmake",
+        "CMAKE_INSTALL_PREFIX" : "${sourceDir}/../build/"
       }
     }
   ]

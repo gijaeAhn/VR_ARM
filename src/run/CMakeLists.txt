@@ -37,16 +37,22 @@ find_package(ZeroMQ REQUIRED)
 
 
 add_executable(rmd_run src/rmd_run.cpp)
+add_executable(motor_run src/motor_run.cpp)
 
 
 target_include_directories(rmd_run PRIVATE    ${ROOT_DIRECTORY})
+target_include_directories(motor_run PRIVATE    ${ROOT_DIRECTORY})
+
 
 target_link_libraries(rmd_run
                       rmd_driver
                       utilities
                       libzmq-static)
 
-
-
+target_link_libraries(motor_run
+                      utilities
+                      libzmq-static)     
 
 target_compile_features(rmd_run PRIVATE cxx_std_17)
+target_compile_features(motor_run PRIVATE cxx_std_17)
+
