@@ -22,7 +22,7 @@
 
 
 
-int main(int argc, char* argv[]){
+int main(){
 
     std::cout << "Start Motor Run" << std::endl;
 
@@ -43,8 +43,8 @@ int main(int argc, char* argv[]){
 
     rmd_torque_publisher.bind(rtp.str());
     dynamixel_torque_publisher.bind(dtp.str());
-    
-    motor_torque_subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+    zmq::sockopt::array_option<ZMQ_SUBSCRIBE,0> sockopt;
+    motor_torque_subscriber.set(sockopt,"");
 
     std::cout << "Debug 1" << std::endl;
 
@@ -57,7 +57,12 @@ int main(int argc, char* argv[]){
         zmq::message_t robot_torque_sub_message(sizeof(float)*ROBOT_MOTOR_SIZE);
 
 
-        motor_torque_subscriber.recv(robot_torque_sub_message, zmq::recv_flags::none);
+        zmq::recv_result_t recv_result =  motor_torque_subscriber.recv(robot_torque_sub_message, zmq::recv_flags::none);
+        //Chekcing Recv here??
+        if(!(recv_result.has_value() && recv_result.value() > 0 )){
+            std::cout << "Failed to recieve net torque Array" << std::endl;
+        }
+
         auto robot_torque_ptr = static_cast<float*>(robot_torque_sub_message.data());
 
 
@@ -70,8 +75,15 @@ int main(int argc, char* argv[]){
         zmq::message_t rmd_torque_pub_message(rmd_torque.data(),rmd_torque.size()*sizeof(float));
         zmq::message_t dynamixel_torque_pub_message(dyna_torque.data(),dyna_torque.size()*sizeof(float));
 
-        rmd_torque_publisher.send(rmd_torque_pub_message,zmq::send_flags::none);
-        dynamixel_torque_publisher.send(dynamixel_torque_pub_message,zmq::send_flags::none);
+        zmq::send_result_t rmd_send_result = rmd_torque_publisher.send(rmd_torque_pub_message,zmq::send_flags::none);
+        zmq::send_result_t dyna_send_result = dynamixel_torque_publisher.send(dynamixel_torque_pub_message,zmq::send_flags::none);
+
+        if(!((rmd_send_result.has_value() && rmd_send_result.value() > 0) && (dyna_send_result.has_value() && dyna_send_result.value() > 0) )){
+            std::cout << "Failed to send torque Array" << std::endl;
+            
+        }
+
+        //Sending Check here?
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;

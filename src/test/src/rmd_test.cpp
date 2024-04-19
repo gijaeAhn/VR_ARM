@@ -22,6 +22,12 @@ void signalHandler(int signal);
 
 int main(int argc,char* argv[])
 {
+    int param_num = argc -1;
+    if(param_num == 0){
+        return EXIT_FAILURE;
+    }
+    std::string device_name = argv[1];
+
     std::signal(SIGINT,signalHandler);
     float rmd_torque_test_buffer[RMD_MOTOR_SIZE] = {0};
 
@@ -47,7 +53,7 @@ int main(int argc,char* argv[])
             if(direction == false )
             rmd_torque_test_buffer[i] += -3;
 
-            if(abs(rmd_torque_test_buffer[i]) >10)
+            if(std::abs(rmd_torque_test_buffer[i]) >10.0f)
             direction = !direction;
         }
 

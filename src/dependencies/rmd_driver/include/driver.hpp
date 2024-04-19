@@ -34,7 +34,7 @@ namespace rmd_driver{
          * @return void
          */
 
-        void addMotor(std::uint32_t actuator_id);
+        void addMotor(std::uint8_t actuator_id);
 
 
         /**\fn MotorRunning
@@ -43,16 +43,16 @@ namespace rmd_driver{
          * @param actuator_id
          * @return void
          */
-        void MotorRunning(std::uint32_t actuator_id);
+        void MotorRunning(std::uint8_t actuator_id);
 
         [[nodiscard]]
-        Feedback sendTorqueSetpoint(std::uint32_t actuator_id, float const current);
+        Feedback sendTorqueSetpoint(std::uint8_t actuator_id, float const current);
 
 
-        void shutdownMotor(std::uint32_t actuator_id);
+        void shutdownMotor(std::uint8_t actuator_id);
 
         
-        void stopMotor(std::uint32_t actuator_id);
+        void stopMotor(std::uint8_t actuator_id);
 
 
 

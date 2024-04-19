@@ -3,6 +3,7 @@
 #include <iostream>
 #include <unistd.h> // For sleep()
 #include <chrono>
+#include <thread>
 
 int main() {
     zmq::context_t context(1);
@@ -21,7 +22,7 @@ int main() {
         
         std::cout << "Sent torque array." << std::endl;
 
-        sleep(0.001); // Wait a bit before sending the next message
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;

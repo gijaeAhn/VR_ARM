@@ -75,12 +75,12 @@ int main(int argc, char* argv[])
     rap << "tcp://*:" << RMD_ANGLE_ADDR;
     rmd_torque_subscriber.connect(rts.str());
     rmd_angle_publisher.bind(rap.str());
-    rmd_torque_subscriber.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+    zmq::sockopt::array_option<ZMQ_SUBSCRIBE,0> sockopt;
+    rmd_torque_subscriber.set(sockopt,"");
 
     //ZMQ Message SET
     zmq::message_t torque_sub_message(sizeof(float)*RMD_MOTOR_SIZE);
     zmq::message_t angle_pub_message(sizeof(float)*RMD_MOTOR_SIZE);
-    auto temp_message_ptr = static_cast<float*>(angle_pub_message.data()); 
 
 
     //Timer and Buffer
@@ -108,7 +108,7 @@ int main(int argc, char* argv[])
     
     // INIT MOTORS
     // SLEEP MOTOR * MOTOR INIT TIME
-    for (int index = 0; index < RMD_MOTOR_SIZE; index++) {
+    for (uint8_t index = 0; index < RMD_MOTOR_SIZE; index++) {
         driver.addMotor(index + MOTOR_ID_OFFSET);
         driver.MotorRunning(index + MOTOR_ID_OFFSET);
         printf("Motor %d running", index+MOTOR_ID_OFFSET);
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
         }
         std::copy(sumBuffer.begin(),sumBuffer.end(),static_cast<float*>(torque_sub_message.data()));
 
-            for(int index=0; index < RMD_MOTOR_SIZE; index++)
+            for(uint8_t index=0; index < RMD_MOTOR_SIZE; index++)
             {
                 sumBuffer[index] = std::clamp(sumBuffer[index], -10.0f, 10.0f);
                 bufFeed[index] = driver.sendTorqueSetpoint(index+MOTOR_ID_OFFSET,sumBuffer[index]);
@@ -175,9 +175,10 @@ int main(int argc, char* argv[])
         {   
             std::cout << "Recieved Torque : " << sumBuffer[0]  << std::endl;
             auto cycleEndtime = std::chrono::steady_clock::now();
-            std::chrono::duration<double> elapsed = cycleEndtime - cycleStarttime;
-            double frequency = static_cast<double>(freqSample) / elapsed.count(); 
+            std::chrono::duration<float> elapsed = cycleEndtime - cycleStarttime;
+            float frequency = static_cast<float>(freqSample) / elapsed.count(); 
             freqCalc = 0;
+            std::cout<< "Actual Frequency : " << frequency << std::endl;
             cycleStarttime = std::chrono::steady_clock::now();
         }
     }

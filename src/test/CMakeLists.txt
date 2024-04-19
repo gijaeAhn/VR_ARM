@@ -33,13 +33,13 @@ target_link_libraries(rmd_test PUBLIC
 
 
 #DYNAMIXEL TEST
-add_executable(dynamixel_test src/dynamixel_test.cpp)
-target_include_directories(dynamixel_test PUBLIC
-                          ${ROOT_DIRECTORY}
-                          ${dynamixel_sdk_SOURCE_DIR}/include )
+# add_executable(dynamixel_test src/dynamixel_test.cpp)
+# target_include_directories(dynamixel_test PUBLIC
+#                           ${ROOT_DIRECTORY}
+#                           ${dynamixel_sdk_SOURCE_DIR}/include )
                           
-target_link_libraries(dynamixel_test PUBLIC
-                      dynamixel_sdk)
+# target_link_libraries(dynamixel_test PUBLIC
+#                       dynamixel_sdk)
 
 
 

@@ -14,7 +14,8 @@ namespace utilities{
 struct Timer{
 
     int actualFrequency_;
-    double realFrequency_;
+    float realFrequency_;
+    float dt_;
 
     std::chrono::steady_clock::time_point start_freq_;
     std::chrono::steady_clock::time_point end_freq_;
@@ -22,12 +23,11 @@ struct Timer{
 
     std::chrono::milliseconds interval_;
     
-    double dt_;
 
     //Change Frequency by setting dt_
     Timer()
-    : actualFrequency_(200), dt_(0.003), interval_(5){}
-    Timer(int actual , double dt)
+    : actualFrequency_(200),dt_(3),interval_(5){}
+    Timer(int actual , float dt)
     : actualFrequency_(actual), dt_(dt) {}
 
 

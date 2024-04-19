@@ -8,8 +8,7 @@
 
 
 
-struct can_filter rfilter = {0x140, .can_mask = CAN_SFF_MASK };
-
+struct can_filter rfilter = {.can_id = 0x140, .can_mask = CAN_SFF_MASK };
 
 namespace rmd_driver{
     namespace can{
@@ -77,8 +76,6 @@ namespace rmd_driver{
 
         Frame Node::read(uint32_t actuator_id) const {
             struct ::can_frame frame {};
-            struct ::can_frame error_frame {};
-            error_frame.can_id = actuator_id;
             std::array<std::uint8_t,8> error_data {0xFF,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
             rfilter.can_id = actuator_id;
@@ -106,7 +103,7 @@ namespace rmd_driver{
             frame.can_dlc = 8;
             std::copy(std::begin(data), std::end(data), std::begin(frame.data));
 
-            float return_frame_size = ::write(socket_,&frame,sizeof(struct ::can_frame));
+            ssize_t return_frame_size = ::write(socket_,&frame,sizeof(struct ::can_frame));
             // Should check the size of the "return_frame_size"
             // If error occurs, size will be -1
 

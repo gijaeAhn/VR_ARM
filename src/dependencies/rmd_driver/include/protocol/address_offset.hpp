@@ -10,7 +10,7 @@
 #include <cstdint>
 
 namespace rmd_driver{
-    std::uint32_t id_offset_ = 0x140;
+    std::uint16_t id_offset_ = 0x140;
 }
 
 #endif //RMD_DRIVER_ADDRESS_OFFSET_HPP

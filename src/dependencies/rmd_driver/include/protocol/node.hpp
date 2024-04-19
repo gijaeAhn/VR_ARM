@@ -78,19 +78,17 @@ namespace rmd_driver {
         return;
     }
 
-    Node::~Node()
-    {std::cout << "Deconstruction of node" << std::endl;}
+    Node::~Node(){
+    std::cout << "Deconstruction of node" << std::endl;
+    }
 
     void Node::updateIds(std::uint8_t const actuator_id) {
         if ((actuator_id < 1) || (actuator_id > 32)) {
             throw Exception("Given actuator id '" + std::to_string(actuator_id) + "' out of range [1, 32]!");
         }
-
-
         printf("%x\n",id_offset_+actuator_id);
         actuator_id_list_.push_back(actuator_id);
         can_send_id_list_.push_back( id_offset_ + actuator_id) ;
-
         can_receive_id_list_.push_back( id_offset_ + actuator_id);
         setRecvFilter(can_receive_id_list_[actuator_id -1]);
 
