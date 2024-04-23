@@ -8,7 +8,7 @@
 #include "utilities/include/timer.hpp"
 #include "utilities/include/shm.hpp"
 
-
+#include <cmath>
 #include <stdint.h>
 #include <string>
 #include <vector>
@@ -98,6 +98,7 @@ int main(int argc, char* argv[])
     std::array<float,RMD_MOTOR_SIZE> gravBuffe;
     std::array<float,RMD_MOTOR_SIZE> sumBuffer;
     std::array<float,RMD_MOTOR_SIZE> angBuffer;
+    std::int16_t sendTorque = 0;
     currentShaft.fill(0);
     previousShaft.fill(0);
     shaftChange.fill(0);
@@ -117,6 +118,8 @@ int main(int argc, char* argv[])
         sleep(MOTOR_INIT_TIME);
         printf("Debug MOTOR INIT  %d", index);
     }
+
+    
     
     //READ HOME ANGLE CONFIGURATION
 
@@ -136,7 +139,18 @@ int main(int argc, char* argv[])
             for(uint8_t index=0; index < RMD_MOTOR_SIZE; index++)
             {
                 sumBuffer[index] = std::clamp(sumBuffer[index], -10.0f, 10.0f);
-                bufFeed[index] = driver.sendTorqueSetpoint(index+MOTOR_ID_OFFSET,sumBuffer[index]);
+                // Motor Constant
+                // 9.8T / 3.0 A = 3.267
+                // int16t range -2000 ~ 2000
+                // to -32A to 32A 
+                // 
+                // Torque to unit
+                // Torque / 3.267 = Current
+                // Sending Value = Torque * 19.131;
+
+                //Rounding Value;
+                sendTorque = static_cast<int16_t>(std::round(sumBuffer[index] * 19.131f));
+                bufFeed[index] = driver.sendTorqueSetpoint(index+MOTOR_ID_OFFSET,sendTorque);
                 previousShaft[index] = currentShaft[index];
                 currentShaft[index] = bufFeed[index].getShaft();
 

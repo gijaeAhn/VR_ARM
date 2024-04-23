@@ -97,9 +97,8 @@ int main(int argc, char* argv[]){
     // INPUT PARAM
     // #1 Device Name (USB Location)
     // #2 BaudRate
-    // #3 Motor Number
 
-    if(argc < 3) {
+    if(argc < 2) {
         fprintf(stderr, "Usage: %s <Device Name> <BaudRate>\n", argv[0]);
         return 1; // Exit with an error code
     }
@@ -111,8 +110,8 @@ int main(int argc, char* argv[]){
     std::stringstream dts;
     std::stringstream dap;
     std::string host = "localhost";
-    dts << "tcp://" << host << ":" << RMD_MOTOR_ADDR;
-    dap << "tcp://*:" << RMD_ANGLE_ADDR;
+    dts << "tcp://" << host << ":" << DYNAMIXEL_MOTOR_ADDR;
+    dap << "tcp://*:" << DYNAMIXEL_ANGLE_ADDR;
     dyna_torque_subscriber.connect(dts.str());
     dyna_angle_publisher.bind(dap.str());
     zmq::sockopt::array_option<ZMQ_SUBSCRIBE,0> sockopt;
@@ -127,7 +126,6 @@ int main(int argc, char* argv[]){
 
     char* DEVICENAME = argv[1];
     std::uint16_t BAUDRATE = static_cast<std::uint16_t>(atoi(argv[2]));
-    std::uint8_t  MOTORNUM = static_cast<std::lsuint8_t>(atoi(argv[3]));
 
 
     //DYNAMIXEL INIT
@@ -137,17 +135,11 @@ int main(int argc, char* argv[]){
     dynamixel::GroupBulkRead groupBulkRead(portHandler, packetHandler);
 
 
-    int index = 0;
     int dxl_comm_result = COMM_TX_FAIL;             // Communication result
     bool dxl_addparam_result = false;               // addParam result
     bool dxl_getdata_result = false;                // GetParam result
-    int dxl_goal_position[2] = {DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE};  
 
     uint8_t dxl_error = 0;                          // Dynamixel error
-    uint8_t dxl_led_value[2] = {0x00, 0xFF};        // Dynamixel LED value for write
-    uint8_t param_goal_position[4];
-    int32_t dxl1_present_position = 0;              // Present position
-    uint8_t dxl2_led_value_read;
     uint8_t torque_goal[DYNAMIXEL_MOTOR_SIZE][4];
 
     std::array<float,DYNAMIXEL_MOTOR_SIZE> sumBuffer;
@@ -330,7 +322,7 @@ int main(int argc, char* argv[]){
         // EX) 1,044,479 * 0.088 =  91914.152  <255Rev>
         // Compare with Home position  (Current Position Unit - Home Position Unit ) * 0.088 / 360 = Current Angle (radian)
         for(uint8_t index = 0; index <DYNAMIXEL_MOTOR_SIZE; index++){
-          angBuffer[index] = ((unitAngBuffer[index] - homePosition[index]) * 0.088) / 360;
+          angBuffer[index] =  static_cast<float>(((unitAngBuffer[index] - homePosition[index]) * 0.088) / 360);
         }
 
         std::copy(angle_pub_message_ptr,angle_pub_message_ptr+DYNAMIXEL_MOTOR_SIZE,angBuffer.begin());

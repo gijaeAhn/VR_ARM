@@ -38,11 +38,16 @@ int main(){
     std::stringstream rtp;
     std::stringstream dtp;
     std::string host = "localhost";
+
+    mts << "tcp://" << host << ":" <<  MOTOR_ADDR;
     rtp << "tcp://*:" << RMD_MOTOR_ADDR;
     dtp << "tcp://*:" << DYNAMIXEL_MOTOR_ADDR;
 
+
+    motor_torque_subscriber.connect(mts.str());
     rmd_torque_publisher.bind(rtp.str());
     dynamixel_torque_publisher.bind(dtp.str());
+    
     zmq::sockopt::array_option<ZMQ_SUBSCRIBE,0> sockopt;
     motor_torque_subscriber.set(sockopt,"");
 

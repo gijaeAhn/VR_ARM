@@ -12,6 +12,7 @@
 #include <thread>
 #include <csignal>
 
+#define  MOTOR_ADDR                 5554
 #define  RMD_MOTOR_ADDR             5555
 #define  DYNAMIXEL_MOTOR_ADDR       5556
 

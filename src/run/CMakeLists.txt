@@ -62,3 +62,6 @@ target_compile_features(rmd_run PRIVATE cxx_std_17)
 target_compile_features(motor_run PRIVATE cxx_std_17)
 target_compile_features(dyna_run PRIVATE cxx_std_17)
 
+apply_global_cxx_flags_to_all_targets()
+remove_flag_from_file(dyna_run src/dynamixel_run.cpp -Werror)
+

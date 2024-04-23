@@ -49,13 +49,18 @@ namespace rmd_driver{
         if ((current < -20.0f) || (current > 20.0f)) {
             throw ValueRangeException("Current value '" + std::to_string(current) + "' out of range [-20.0, 20.0]");
         }
-        auto const c {static_cast<std::int16_t>(current/0.01f)};
+        //On work
+        // auto const c {static_cast<std::int16_t>(current/0.01f)};
+        auto const c {static_cast<std::int16_t>(current)};
         setAt(c, 4);
         return;
     }
 
     float SetTorqueRequest::getTorqueCurrent() const noexcept {
-    return static_cast<float>(getAs<std::int16_t>(4))*0.01f;}
+    // return static_cast<float>(getAs<std::int16_t>(4))*0.01f;
+    return static_cast<float>(getAs<std::int16_t>(4));
+
+    }
 
 
 
