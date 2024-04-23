@@ -12,6 +12,8 @@
 //Utilities
 #include "utilities/include/shm.hpp"
 #include "utilities/include/timer.hpp"
+//ZMQ
+#include "zmq.hpp"
 
 
 #include <stdlib.h>
@@ -45,9 +47,9 @@
 #define PROTOCOL_VERSION                2.0                 // See which protocol version is used in the Dynamixel
 
 // Default setting
-#define DXL1_ID                         1                   // Dynamixel#1 ID: 1
-#define DXL2_ID                         2                   // Dynamixel#2 ID: 2
-#define DXL3_ID                         3                   // Dynamixel#3 ID: 3
+#define DXL1_ID                         11                   // Dynamixel#1 ID: 1
+#define DXL2_ID                         12                   // Dynamixel#2 ID: 2
+#define DXL3_ID                         13                   // Dynamixel#3 ID: 3
 
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
@@ -93,6 +95,25 @@ int main(int argc, char* argv[]){
         return 1; // Exit with an error code
     }
 
+    zmq::context_t context(1);
+    zmq::socket_t dyna_torque_subscriber(context,ZMQ_SUB);
+    zmq::socket_t dyna_angle_publisher(context,ZMQ_PUB);
+
+    std::stringstream dts;
+    std::stringstream dap;
+    std::string host = "localhost";
+    dts << "tcp://" << host << ":" << RMD_MOTOR_ADDR;
+    dap << "tcp://*:" << RMD_ANGLE_ADDR;
+    dyna_torque_subscriber.connect(dts.str());
+    dyna_angle_publisher.bind(dap.str());
+    zmq::sockopt::array_option<ZMQ_SUBSCRIBE,0> sockopt;
+    dyna_torque_subscriber.set(sockopt,"");
+
+    zmq::message_t torque_sub_message(sizeof(float)*DYNAMIXEL_MOTOR_SIZE);
+    zmq::message_t angle_pub_message(sizeof(float)*DYNAMIXEL_MOTOR_SIZE);
+
+    utilities::Timer timer;
+
     char* DEVICENAME = argv[1];
     std::uint16_t BAUDRATE = static_cast<std::uint16_t>(atoi(argv[2])); 
     std::uint8_t  MOTORNUM = static_cast<std::uint8_t>(atoi(argv[3]));
@@ -115,7 +136,16 @@ int main(int argc, char* argv[]){
     uint8_t dxl_led_value[2] = {0x00, 0xFF};        // Dynamixel LED value for write
     uint8_t param_goal_position[4];
     int32_t dxl1_present_position = 0;              // Present position
-    uint8_t dxl2_led_value_read;                    // Dynamixel LED value for read
+    uint8_t dxl2_led_value_read;
+    uint8_t torque_goal[DYNAMIXEL_MOTOR_SIZE][4];
+
+    std::array<float,DYNAMIXEL_MOTOR_SIZE> sumBuffer;
+    //May be not a float
+    std::array<float,DYNAMIXEL_MOTOR_SIZE> angBuffer;
+    std::array<float,DYNAMIXEL_MOTOR_SIZE> currentBuffer;
+    sumBuffer.fill(0);
+    angBuffer.fill(0);
+    currentBuffer.fill(0);
 
     // Open port
     if (portHandler->openPort())
@@ -144,66 +174,58 @@ int main(int argc, char* argv[]){
     }
 
     // Enable Dynamixel#1 Torque
-    dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL1_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-      printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-    }
-    else if (dxl_error != 0)
-    {
-      printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-    }
-    else
-    {
-      printf("Dynamixel#%d has been successfully connected \n", DXL1_ID);
+    
+
+    for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
+      dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL1_ID + index, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
+      if (dxl_comm_result != COMM_SUCCESS)
+      {
+        printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+      }
+      else if (dxl_error != 0)
+      {
+        printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+      }
+      else
+      {
+        printf("Dynamixel#%d has been successfully connected \n", DXL1_ID + index);
+      }
     }   
 
 
-    // Enable Dynamixel#2 Torque
-    dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL2_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
-      printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+    for(uint8_t index = 0 ; index < DYNAMIXEL_MOTOR_SIZE; index++){
+      dxl_addparam_result = groupBulkRead.addParam(DXL1_ID + index, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+      if (dxl_addparam_result != true)
+      {
+        fprintf(stderr, "[ID:%03d] grouBulkRead addparam failed", DXL1_ID + index);
+        return 0;
+      }
     }
-    else if (dxl_error != 0)
-    {
-      printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-    }
-    else
-    {
-      printf("Dynamixel#%d has been successfully connected \n", DXL2_ID);
-    }
-
-
-    // Add parameter storage for Dynamixel#1 present position
-    dxl_addparam_result = groupBulkRead.addParam(DXL1_ID, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
-    if (dxl_addparam_result != true)
-    {
-      fprintf(stderr, "[ID:%03d] grouBulkRead addparam failed", DXL1_ID);
-      return 0;
-    }
-    // Add parameter storage for Dynamixel#2 LED value
-    dxl_addparam_result = groupBulkRead.addParam(DXL2_ID, ADDR_PRO_LED_RED, LEN_PRO_LED_RED);
-    if (dxl_addparam_result != true)
-    {
-      fprintf(stderr, "[ID:%03d] grouBulkRead addparam failed", DXL2_ID);
-      return 0;
-    }
+    
 
 
 
 
     while(1)
       {
-        printf("Press any key to continue! (or press ESC to quit!)\n");
-        if (getch() == ESC_ASCII_VALUE)
-          break;
+        //Exit Code Here
 
-        // Allocate goal position value into byte array
-        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(dxl_goal_position[index]));
-        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(dxl_goal_position[index]));
-        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(dxl_goal_position[index]));
-        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(dxl_goal_position[index]));
+        zmq::recv_result_t result = dyna_torque_subscriber.recv(torque_sub_message,zmq::recv_flags::none);
+        std::copy(sumBuffer.begin(),sumBuffer.end(),static_cast<float*>(torque_sub_message.data()));
+
+        //Torque Constant( Torque / Current ) ~= 2.12
+        //Protocol Unit = 2.69mA
+        //Current Limit = 0 ~ 2047
+        //Current Range == -Current Limit ~ Current Limit
+        for(uint8_t index)
+
+      
+
+
+
+
+
+
 
         // Add parameter storage for Dynamixel#1 goal position
         dxl_addparam_result = groupBulkWrite.addParam(DXL1_ID, ADDR_PRO_GOAL_POSITION, LEN_PRO_GOAL_POSITION, param_goal_position);

@@ -83,8 +83,6 @@ int main(){
             
         }
 
-        //Sending Check here?
-
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;
         double frequency = 1.0 / elapsed.count();
