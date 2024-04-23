@@ -34,7 +34,7 @@ namespace rmd_driver {
            * \param[in] actuator_id
            *    The id of the actuator [0, 32]
         */
-        void updateIds(std::uint8_t const actuator_id);
+        void updateIds(std::uint16_t const actuator_id);
 
         /**\fn send
          * \brief
@@ -82,7 +82,7 @@ namespace rmd_driver {
     std::cout << "Deconstruction of node" << std::endl;
     }
 
-    void Node::updateIds(std::uint8_t const actuator_id) {
+    void Node::updateIds(std::uint16_t const actuator_id) {
         if ((actuator_id < 1) || (actuator_id > 32)) {
             throw Exception("Given actuator id '" + std::to_string(actuator_id) + "' out of range [1, 32]!");
         }
