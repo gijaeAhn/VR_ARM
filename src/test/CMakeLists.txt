@@ -41,6 +41,14 @@ target_link_libraries(rmd_test PUBLIC
 # target_link_libraries(dynamixel_test PUBLIC
 #                       dynamixel_sdk)
 
+add_executable(motor_test src/motor_test.cpp)
+target_include_directories(motor_test  PUBLIC
+                          ${CMAKE_SOURCE_DIR}
+                          ${rmd_driver_SOURCE_DIR}/include)
+
+target_link_libraries(motor_test PUBLIC
+                      libzmq-static)  
+
 
 
 

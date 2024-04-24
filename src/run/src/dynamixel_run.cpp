@@ -114,13 +114,14 @@ int main(int argc, char* argv[]){
     dap << "tcp://*:" << DYNAMIXEL_ANGLE_ADDR;
     dyna_torque_subscriber.connect(dts.str());
     dyna_angle_publisher.bind(dap.str());
-    zmq::sockopt::array_option<ZMQ_SUBSCRIBE,0> sockopt;
+    zmq::sockopt::array_option<ZMQ_SUBSCRIBE,1> sockopt;
     dyna_torque_subscriber.set(sockopt,"");
    
 
     zmq::message_t torque_sub_message(sizeof(float)*DYNAMIXEL_MOTOR_SIZE);
     zmq::message_t angle_pub_message(sizeof(float)*DYNAMIXEL_MOTOR_SIZE);
-    float* angle_pub_message_ptr = static_cast<float*>(angle_pub_message.data());
+    auto torque_sub_message_ptr = reinterpret_cast<float*>(torque_sub_message.data());
+    auto angle_pub_message_ptr = reinterpret_cast<float*>(angle_pub_message.data());
 
     utilities::Timer timer;
 
@@ -259,7 +260,7 @@ int main(int argc, char* argv[]){
           std::perror("Failed to recieve message");
         }
 
-        std::copy(sumBuffer.begin(),sumBuffer.end(),static_cast<float*>(torque_sub_message.data()));
+        std::copy(torque_sub_message_ptr,torque_sub_message_ptr+DYNAMIXEL_MOTOR_SIZE,sumBuffer.data());
 
         //Torque Constant( Torque / Current ) ~= 2.12 // Suppose it's linear
         //Protocol Unit = 2.69mA
@@ -278,8 +279,7 @@ int main(int argc, char* argv[]){
         for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
           // Add parameter storage for Dynamixel#1 goal position
           dxl_addparam_result = groupBulkWrite.addParam(DXL1_ID + index, ADDR_CURRENT_GOAL, LEN_CURRENT_GOAL, torque_goal[index]);
-          if (dxl_addparam_result != true)
-          {
+          if (dxl_addparam_result != true){
             fprintf(stderr, "[ID:%03d] groupBulkWrite addparam failed", DXL1_ID);
             return 0;
           }
@@ -294,22 +294,19 @@ int main(int argc, char* argv[]){
 
         // Bulkread present position and LED status
         dxl_comm_result = groupBulkRead.txRxPacket();
-        if (dxl_comm_result != COMM_SUCCESS)
-        {
+        if (dxl_comm_result != COMM_SUCCESS){
           printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
         }
-        else if (groupBulkRead.getError(DXL1_ID, &dxl_error))
-        {
+        else if (groupBulkRead.getError(DXL1_ID, &dxl_error)){
           printf("[ID:%03d] %s\n", DXL1_ID, packetHandler->getRxPacketError(dxl_error));
         }
-        else if (groupBulkRead.getError(DXL2_ID, &dxl_error))
-        {
+        else if (groupBulkRead.getError(DXL2_ID, &dxl_error)){
           printf("[ID:%03d] %s\n", DXL2_ID, packetHandler->getRxPacketError(dxl_error));
         }
+
         for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE ; index ++){
           dxl_getdata_result = groupBulkRead.isAvailable(DXL1_ID + index, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
-          if (dxl_getdata_result != true)
-          {
+          if (dxl_getdata_result != true){
             fprintf(stderr, "[ID:%03d] groupBulkRead getdata failed", DXL1_ID + index);
             return 0;
           }
@@ -318,19 +315,17 @@ int main(int argc, char* argv[]){
         for(uint8_t index =0 ; index < DYNAMIXEL_MOTOR_SIZE; index++){
           unitAngBuffer[index] = groupBulkRead.getData(DXL1_ID + index, ADDR_PRESENT_POSITION,LEN_PRESENT_POSITION);
         }
+
         // Position Unit 0.088 degree
         // EX) 1,044,479 * 0.088 =  91914.152  <255Rev>
         // Compare with Home position  (Current Position Unit - Home Position Unit ) * 0.088 / 360 = Current Angle (radian)
+        
         for(uint8_t index = 0; index <DYNAMIXEL_MOTOR_SIZE; index++){
           angBuffer[index] =  static_cast<float>(((unitAngBuffer[index] - homePosition[index]) * 0.088) / 360);
         }
 
-        std::copy(angle_pub_message_ptr,angle_pub_message_ptr+DYNAMIXEL_MOTOR_SIZE,angBuffer.begin());
-
-        zmq::send_result_t send_result = dyna_angle_publisher.send(angle_pub_message,zmq::send_flags::none);
-        if(send_result == -1){
-          std::perror("Failed to send angle message");
-        }
+        std::copy(angBuffer.begin(),angBuffer.end(),angle_pub_message_ptr);
+        dyna_angle_publisher.send(angle_pub_message,zmq::send_flags::none);
       }
 
       // // Disable Dynamixel#1 Torque

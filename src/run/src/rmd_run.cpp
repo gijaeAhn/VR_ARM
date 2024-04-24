@@ -75,12 +75,14 @@ int main(int argc, char* argv[])
     rap << "tcp://*:" << RMD_ANGLE_ADDR;
     rmd_torque_subscriber.connect(rts.str());
     rmd_angle_publisher.bind(rap.str());
-    zmq::sockopt::array_option<ZMQ_SUBSCRIBE,0> sockopt;
+    zmq::sockopt::array_option<ZMQ_SUBSCRIBE,1> sockopt;
     rmd_torque_subscriber.set(sockopt,"");
 
     //ZMQ Message SET
-    zmq::message_t torque_sub_message(sizeof(float)*RMD_MOTOR_SIZE);
-    zmq::message_t angle_pub_message(sizeof(float)*RMD_MOTOR_SIZE);
+    zmq::message_t rmd_torque_sub_message(sizeof(float)*RMD_MOTOR_SIZE);
+    zmq::message_t rmd_angle_pub_message(sizeof(float)*RMD_MOTOR_SIZE);
+    auto rmd_torque_sub_message_ptr = reinterpret_cast<float*>(rmd_torque_sub_message.data());
+    auto rmd_angle_pub_message_ptr = reinterpret_cast<float*>(rmd_angle_pub_message.data());
 
 
     //Timer and Buffer
@@ -130,60 +132,48 @@ int main(int argc, char* argv[])
     while(true){
         freqCalc +=1;
         //::Read Torque here::
-        zmq::recv_result_t result = rmd_torque_subscriber.recv(torque_sub_message,zmq::recv_flags::none);
+        zmq::recv_result_t result = rmd_torque_subscriber.recv(rmd_torque_sub_message,zmq::recv_flags::none);
         if (!result) {
         std::cerr << "Failed to receive message: " << std::endl;
         }
-        std::copy(sumBuffer.begin(),sumBuffer.end(),static_cast<float*>(torque_sub_message.data()));
-
-            for(uint8_t index=0; index < RMD_MOTOR_SIZE; index++)
-            {
-                sumBuffer[index] = std::clamp(sumBuffer[index], -10.0f, 10.0f);
-                // Motor Constant
-                // 9.8T / 3.0 A = 3.267
-                // int16t range -2000 ~ 2000
-                // to -32A to 32A 
-                // 
-                // Torque to unit
-                // Torque / 3.267 = Current
-                // Sending Value = Torque * 19.131;
-
-                //Rounding Value;
-                sendTorque = static_cast<int16_t>(std::round(sumBuffer[index] * 19.131f));
-                bufFeed[index] = driver.sendTorqueSetpoint(index+MOTOR_ID_OFFSET,sendTorque);
-                previousShaft[index] = currentShaft[index];
-                currentShaft[index] = bufFeed[index].getShaft();
-
-                //Estimating current Angle
-
-                auto delta = currentShaft[index] - previousShaft[index];
-                if ( delta > 50000) {
-                    shaftChange[index] = -((rmd_driver::maxShaftAngle - currentShaft[index]) + previousShaft[index]);
-                }
-                else if (delta < -50000) {
-                    shaftChange[index] = currentShaft[index] + (rmd_driver::maxShaftAngle - previousShaft[index]);
-                }
-                else{
-                    shaftChange[index] = delta;
-                }
-                
-                angBuffer[index] += shaftChange[index]/(rmd_driver::maxShaftAngle)*(rmd_driver::oneShaftCycle);
-
-            }
-
-        //::Send Angle here::
-        if (angle_pub_message.size() >= sizeof(float) * RMD_MOTOR_SIZE) {
-        //zmq::message_t data type == void*
-        //Cause std::copy type problem 
-        float* temp_message_ptr = static_cast<float*>(angle_pub_message.data());
-        std::copy(temp_message_ptr,temp_message_ptr + RMD_MOTOR_SIZE,angBuffer.begin());
-        rmd_angle_publisher.send(angle_pub_message,zmq::send_flags::none);
-        } else {
-            // Handle error: Not enough data
-            std::cerr << "Error: message does not contain enough data." << std::endl;
+        else{
+        std::copy(rmd_torque_sub_message_ptr,rmd_angle_pub_message_ptr + RMD_MOTOR_SIZE, sumBuffer.begin());
         }
+        
+        for(uint8_t index=0; index < RMD_MOTOR_SIZE; index++)
+        {
+            sumBuffer[index] = std::clamp(sumBuffer[index], -10.0f, 10.0f);
+            // Motor Constant
+            // 9.8T / 3.0 A = 3.267
+            // int16t range -2000 ~ 2000
+            // to -32A to 32A 
+            // 
+            // Torque to unit
+            // Torque / 3.267 = Current
+            // Sending Value = Torque * 19.131;
+            //Rounding Value;
+            sendTorque = static_cast<int16_t>(std::round(sumBuffer[index] * 19.131f));
+            bufFeed[index] = driver.sendTorqueSetpoint(index+MOTOR_ID_OFFSET,sendTorque);
+            previousShaft[index] = currentShaft[index];
+            currentShaft[index] = bufFeed[index].getShaft();
+            //Estimating current Angle
+            auto delta = currentShaft[index] - previousShaft[index];
+            if ( delta > 50000) {
+                shaftChange[index] = -((rmd_driver::maxShaftAngle - currentShaft[index]) + previousShaft[index]);
+            }
+            else if (delta < -50000) {
+                shaftChange[index] = currentShaft[index] + (rmd_driver::maxShaftAngle - previousShaft[index]);
+            }
+            else{
+                shaftChange[index] = delta;
+            }
+            
+            angBuffer[index] += shaftChange[index]/(rmd_driver::maxShaftAngle)*(rmd_driver::oneShaftCycle);
+        }
+        //::Send Angle here::
 
-
+        std::copy(angBuffer.begin(),angBuffer.end(),rmd_angle_pub_message_ptr);
+        rmd_angle_publisher.send(rmd_angle_pub_message,zmq::send_flags::none);
 
         if (freqCalc >= freqSample)
         {   
