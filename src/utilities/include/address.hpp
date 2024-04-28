@@ -2,6 +2,7 @@
 // Created by gj on 24. 3. 5.
 //
 
+// Refactor: Update the identifier's name
 
 #include <iostream>
 #include <sys/ipc.h>
@@ -30,12 +31,12 @@
 
 #define  ROBOT_ANGLE_ADDR           5561
 
-#define  ROBOT_MOTOR_SIZE              6
+#define  ROBOT_MOTOR_SIZE              4
 #define  MOTORINIT_TIME                0.1f
 
-#define  RMD_MOTOR_SIZE                1    
+#define  RMD_MOTOR_SIZE                2
 
-#define  DYNAMIXEL_MOTOR_SIZE          1    
+#define  DYNAMIXEL_MOTOR_SIZE          2
 
 
 

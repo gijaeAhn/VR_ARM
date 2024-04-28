@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8.0)
+cmake_minimum_required(VERSION 3.23.0)
 project(utilities)
         
 
@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_library(utilities SHARED
             include/parser.hpp
-            include/shm.hpp
+            include/address.hpp
             include/timer.hpp
             src/temp.cpp
 )

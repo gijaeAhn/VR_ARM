@@ -10,7 +10,7 @@
 //SDK
 #include "dependencies/dynamixel_sdk/include/dynamixel_sdk/dynamixel_sdk.h"
 //Utilities
-#include "utilities/include/shm.hpp"
+#include "utilities/include/address.hpp"
 #include "utilities/include/timer.hpp"
 //ZMQ
 #include "zmq.hpp"
@@ -28,34 +28,29 @@
 #include <algorithm>
 #include <csignal>
 #include <cstdint>
+#include <math.h>
 
 
 //////// DYNAMIXEL CONFIGURATION
 
 // Control table address
-#define ADDR_PRO_TORQUE_ENABLE          562                 // Control table address is different in Dynamixel model
-#define ADDR_PRO_LED_RED                563
-#define ADDR_PRO_GOAL_POSITION          596
-#define ADDR_PRO_PRESENT_POSITION       611
 
+#define ADDR_TORQUE_ENABLE              64
 #define ADDR_CURRENT_GOAL               102
-#define ADDR_TORUQE_ENABEL              64
 #define ADDR_PRESENT_POSITION           132
 
+
 // Data Byte Length
-#define LEN_PRO_LED_RED                 1
-#define LEN_PRO_GOAL_POSITION           4
-#define LEN_PRO_PRESENT_POSITION        4
-#define LEN_CURRENT_GOAL                4
+#define LEN_CURRENT_GOAL                2
 #define LEN_PRESENT_POSITION            4
 
 // Protocol version
 #define PROTOCOL_VERSION                2.0                 // See which protocol version is used in the Dynamixel
 
 // Default setting
-#define DXL1_ID                         11                   // Dynamixel#1 ID: 1
-#define DXL2_ID                         12                   // Dynamixel#2 ID: 2
-#define DXL3_ID                         13                   // Dynamixel#3 ID: 3
+#define DXL1_ID                         1                   // Dynamixel#1 ID: 11
+#define DXL2_ID                         2                   // Dynamixel#2 ID: 12
+#define DXL3_ID                         13                   // Dynamixel#3 ID: 13
 
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
@@ -69,7 +64,8 @@
 #define ESC_ASCII_VALUE                 0x1b
 
 ///////
-
+dynamixel::PacketHandler* packetHandler = nullptr;
+dynamixel::PortHandler* portHandler = nullptr;
 
 
 
@@ -92,16 +88,39 @@ int getch()
 }
 
 
-int main(int argc, char* argv[]){
 
-    // INPUT PARAM
-    // #1 Device Name (USB Location)
-    // #2 BaudRate
 
-    if(argc < 2) {
-        fprintf(stderr, "Usage: %s <Device Name> <BaudRate>\n", argv[0]);
-        return 1; // Exit with an error code
+
+void signalHandler(int signum)
+{
+    int dxl_comm_result = COMM_TX_FAIL;             // Communication result
+    uint8_t dxl_error = 0;                          // Dynamixel error
+    std::cout << "Interrupt signal (" << signum << " ) recieved.\n" << std::endl;
+
+    // // Disable Dynamixel Torque
+    while(dxl_comm_result != COMM_SUCCESS) {
+        for (uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++) {
+            dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL1_ID + index, ADDR_TORQUE_ENABLE,
+                                                            TORQUE_DISABLE, &dxl_error);
+            if (dxl_comm_result != COMM_SUCCESS) {
+                printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+            } else if (dxl_error != 0) {
+                printf("%s\n", packetHandler->getRxPacketError(dxl_error));
+            }
+        }
     }
+
+    // // Close port
+     portHandler->closePort();
+
+    std::exit(EXIT_SUCCESS);
+}
+
+
+
+
+int main(){
+    std::signal(SIGINT, signalHandler);
 
     zmq::context_t context(1);
     zmq::socket_t dyna_torque_subscriber(context,ZMQ_SUB);
@@ -125,13 +144,12 @@ int main(int argc, char* argv[]){
 
     utilities::Timer timer;
 
-    char* DEVICENAME = argv[1];
-    std::uint16_t BAUDRATE = static_cast<std::uint16_t>(atoi(argv[2]));
 
 
     //DYNAMIXEL INIT
-    dynamixel::PortHandler *portHandler = dynamixel::PortHandler::getPortHandler(DEVICENAME);
-    dynamixel::PacketHandler *packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+    packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
+    portHandler = dynamixel::PortHandler::getPortHandler("/dev/ttyUSB0");
+
     dynamixel::GroupBulkWrite groupBulkWrite(portHandler, packetHandler);
     dynamixel::GroupBulkRead groupBulkRead(portHandler, packetHandler);
 
@@ -141,13 +159,13 @@ int main(int argc, char* argv[]){
     bool dxl_getdata_result = false;                // GetParam result
 
     uint8_t dxl_error = 0;                          // Dynamixel error
-    uint8_t torque_goal[DYNAMIXEL_MOTOR_SIZE][4];
+    uint8_t torque_goal[DYNAMIXEL_MOTOR_SIZE][2];
 
     std::array<float,DYNAMIXEL_MOTOR_SIZE> sumBuffer;
     //May be not a float
     std::array<float,DYNAMIXEL_MOTOR_SIZE> angBuffer;
     std::array<float,DYNAMIXEL_MOTOR_SIZE> currentBuffer;
-    std::array<uint16_t,DYNAMIXEL_MOTOR_SIZE> unitCurrentBuffer;
+    std::array<int16_t,DYNAMIXEL_MOTOR_SIZE> unitCurrentBuffer;
     std::array<uint32_t,DYNAMIXEL_MOTOR_SIZE> unitAngBuffer;
     std::array<uint32_t,DYNAMIXEL_MOTOR_SIZE> homePosition;
     sumBuffer.fill(0);
@@ -159,34 +177,32 @@ int main(int argc, char* argv[]){
     // Open port
     if (portHandler->openPort())
     {
-      printf("Succeeded to open the port!\n");
+        printf("Succeeded to open the port!\n");
     }
     else
     {
-      printf("Failed to open the port!\n");
-      printf("Press any key to terminate...\n");
-      getch();
-      return 0;
+        printf("Failed to open the port!\n");
+        printf("Press any key to terminate...\n");
+        getch();
+        return 0;
     }
 
     // Set port baudrate
-    if (portHandler->setBaudRate(BAUDRATE))
+    if (portHandler->setBaudRate(4000000))
     {
-      printf("Succeeded to change the baudrate!\n");
+        printf("Succeeded to change the baudrate!\n");
     }
     else
     {
-      printf("Failed to change the baudrate!\n");
-      printf("Press any key to terminate...\n");
-      getch();
-      return 0;
+        printf("Failed to change the baudrate!\n");
+        printf("Press any key to terminate...\n");
+        getch();
+        return 0;
     }
 
-    // Enable Dynamixel#1 Torque
-   
 
     for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
-      dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL1_ID + index, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
+      dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL1_ID + index, ADDR_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
       if (dxl_comm_result != COMM_SUCCESS)
       {
         printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
@@ -199,7 +215,7 @@ int main(int argc, char* argv[]){
       {
         printf("Dynamixel#%d has been successfully connected \n", DXL1_ID + index);
       }
-    }  
+    }
 
 
     for(uint8_t index = 0 ; index < DYNAMIXEL_MOTOR_SIZE; index++){
@@ -211,7 +227,6 @@ int main(int argc, char* argv[]){
       }
     }
    
-    // Bulkread present position and LED status
     dxl_comm_result = groupBulkRead.txRxPacket();
     if (dxl_comm_result != COMM_SUCCESS)
     {
@@ -225,8 +240,9 @@ int main(int argc, char* argv[]){
     {
       printf("[ID:%03d] %s\n", DXL2_ID, packetHandler->getRxPacketError(dxl_error));
     }
+
     for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE ; index ++){
-      dxl_getdata_result = groupBulkRead.isAvailable(DXL1_ID + index, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+      dxl_getdata_result = groupBulkRead.isAvailable(DXL1_ID + index, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
       if (dxl_getdata_result != true)
       {
         fprintf(stderr, "[ID:%03d] groupBulkRead getdata failed", DXL1_ID + index);
@@ -237,12 +253,12 @@ int main(int argc, char* argv[]){
     for(uint8_t index =0 ; index < DYNAMIXEL_MOTOR_SIZE; index++){
       homePosition[index]= groupBulkRead.getData(DXL1_ID + index, ADDR_PRESENT_POSITION,LEN_PRESENT_POSITION);
     }
-   
+
     for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
-      printf("unit Encoder Motor %d : %d  ",index,homePosition[index]);
-      if(index + 1 == DYNAMIXEL_MOTOR_SIZE){
-        printf("\n");
-      }
+        printf("unit Encoder Motor %d : %d  ",index,homePosition[index]);
+        if(index + 1 == DYNAMIXEL_MOTOR_SIZE){
+            printf("\n");
+        }
     }
 
    
@@ -262,16 +278,25 @@ int main(int argc, char* argv[]){
 
         std::copy(torque_sub_message_ptr,torque_sub_message_ptr+DYNAMIXEL_MOTOR_SIZE,sumBuffer.data());
 
+        for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
+              printf(" Motor Torque %d : %f  ",index+1,sumBuffer[index]);
+              if(index + 1 == DYNAMIXEL_MOTOR_SIZE){
+                  printf("\n");
+              }
+        }
+
+
+
         //Torque Constant( Torque / Current ) ~= 2.12 // Suppose it's linear
         //Protocol Unit = 2.69mA
         //Current Limit = 0 ~ 2047
         //Current Range == -Current Limit ~ Current Limit
+        //Need to verify the appropriate data type, whether it should be uint16_t or uint32_t
+        //
         for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
-          unitCurrentBuffer[index] = static_cast<uint16_t>(((sumBuffer[index] / TORQUE_CONSTANT) * 1000) / CURRENT_UNIT);
-          torque_goal[index][0] = DXL_LOBYTE(DXL_LOWORD(unitCurrentBuffer[index]));
-          torque_goal[index][1] = DXL_HIBYTE(DXL_LOWORD(unitCurrentBuffer[index]));
-          torque_goal[index][2] = DXL_LOBYTE(DXL_HIWORD(unitCurrentBuffer[index]));
-          torque_goal[index][3] = DXL_HIBYTE(DXL_HIWORD(unitCurrentBuffer[index]));
+          unitCurrentBuffer[index] = static_cast<std::int16_t>(((sumBuffer[index] / TORQUE_CONSTANT) * 1000) / CURRENT_UNIT);
+          torque_goal[index][0] = DXL_LOBYTE(unitCurrentBuffer[index]);  // Lower byte
+          torque_goal[index][1] = DXL_HIBYTE(unitCurrentBuffer[index]);
         }
 
      
@@ -285,7 +310,7 @@ int main(int argc, char* argv[]){
           }
         }
         dxl_comm_result = groupBulkWrite.txPacket();
-        if (dxl_comm_result != COMM_SUCCESS) printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
+        if (dxl_comm_result != true) printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
 
         // Clear bulkwrite parameter storage
         groupBulkWrite.clearParam();
@@ -294,7 +319,7 @@ int main(int argc, char* argv[]){
 
         // Bulkread present position and LED status
         dxl_comm_result = groupBulkRead.txRxPacket();
-        if (dxl_comm_result != COMM_SUCCESS){
+        if (dxl_comm_result != true){
           printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
         }
         else if (groupBulkRead.getError(DXL1_ID, &dxl_error)){
@@ -305,7 +330,7 @@ int main(int argc, char* argv[]){
         }
 
         for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE ; index ++){
-          dxl_getdata_result = groupBulkRead.isAvailable(DXL1_ID + index, ADDR_PRO_PRESENT_POSITION, LEN_PRO_PRESENT_POSITION);
+          dxl_getdata_result = groupBulkRead.isAvailable(DXL1_ID + index, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
           if (dxl_getdata_result != true){
             fprintf(stderr, "[ID:%03d] groupBulkRead getdata failed", DXL1_ID + index);
             return 0;
@@ -318,40 +343,30 @@ int main(int argc, char* argv[]){
 
         // Position Unit 0.088 degree
         // EX) 1,044,479 * 0.088 =  91914.152  <255Rev>
-        // Compare with Home position  (Current Position Unit - Home Position Unit ) * 0.088 / 360 = Current Angle (radian)
+        // Compare with Home position  (Current Position Unit - Home Position Unit ) * 0.088  = Current Angle (radian)
         
         for(uint8_t index = 0; index <DYNAMIXEL_MOTOR_SIZE; index++){
-          angBuffer[index] =  static_cast<float>(((unitAngBuffer[index] - homePosition[index]) * 0.088) / 360);
+          angBuffer[index] =  (static_cast<int32_t>(unitAngBuffer[index]) - static_cast<int32_t>(homePosition[index])) * 0.088f;
         }
+          for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
+              printf(" Motor Unit Angle %d : %ld  ",index+1,unitAngBuffer[index]);
+              if(index + 1 == DYNAMIXEL_MOTOR_SIZE){
+                  printf("\n");
+              }
+          }
+
+        for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
+            printf(" Motor Angle %d : %f  ",index+1,angBuffer[index]);
+            if(index + 1 == DYNAMIXEL_MOTOR_SIZE){
+                printf("\n");
+            }
+          }
 
         std::copy(angBuffer.begin(),angBuffer.end(),angle_pub_message_ptr);
         dyna_angle_publisher.send(angle_pub_message,zmq::send_flags::none);
       }
 
-      // // Disable Dynamixel#1 Torque
-      // dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL1_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
-      // if (dxl_comm_result != COMM_SUCCESS)
-      // {
-      //   printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-      // }
-      // else if (dxl_error != 0)
-      // {
-      //   printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-      // }
 
-      // // Disable Dynamixel#2 Torque
-      // dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL2_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
-      // if (dxl_comm_result != COMM_SUCCESS)
-      // {
-      //   printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-      // }
-      // else if (dxl_error != 0)
-      // {
-      //   printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-      // }
-
-      // // Close port
-      // portHandler->closePort();
 
       // return 0;
 }

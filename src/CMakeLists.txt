@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.23.0)
 project(VR_ARM
         VERSION 1.0
         LANGUAGES CXX)
@@ -79,6 +79,7 @@ macro(remove_flag_from_file _target _file _flag)
 endmacro()
 
 add_subdirectory(utilities)
+add_subdirectory(math)
 add_subdirectory(dependencies/dynamixel_sdk)
 add_subdirectory(dependencies/rmd_driver)
 add_subdirectory(ros_interface)

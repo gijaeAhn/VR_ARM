@@ -1,5 +1,5 @@
 #include "utilities/include/timer.hpp"
-#include "utilities/include/shm.hpp"
+#include "utilities/include/address.hpp"
 
 
 #include <stdint.h>
@@ -52,7 +52,11 @@ int main(){
     motor_torque_subscriber.set(sockopt,"");
 
     std::array<float,ROBOT_MOTOR_SIZE> debugBuffer;
+    std::array<float,RMD_MOTOR_SIZE> rmd_torque;
+    std::array<float,DYNAMIXEL_MOTOR_SIZE> dyna_torque;
     debugBuffer.fill(0);
+    rmd_torque.fill(0);
+    dyna_torque.fill(0);
 
 
 
@@ -85,12 +89,25 @@ int main(){
         auto robot_torque_ptr = static_cast<float*>(robot_torque_sub_message.data());
 
 
-        std::array<float,RMD_MOTOR_SIZE> rmd_torque;
-        std::array<float,DYNAMIXEL_MOTOR_SIZE> dyna_torque;
+
 
         //Send RMD, Dyna torques
-        std::copy(rmd_torque.begin(),rmd_torque.end(),robot_torque_ptr);
-        std::copy(dyna_torque.begin(),dyna_torque.end(),robot_torque_ptr + RMD_MOTOR_SIZE);
+        std::copy(robot_torque_ptr,robot_torque_ptr + RMD_MOTOR_SIZE, rmd_torque.data());
+        std::copy(robot_torque_ptr+RMD_MOTOR_SIZE,robot_torque_ptr+ROBOT_MOTOR_SIZE,dyna_torque.data());
+
+        for(uint8_t index = 0; index < RMD_MOTOR_SIZE; index++){
+            printf("  RMD Motor Torque %d : %f  ",index+1,rmd_torque[index]);
+            if(index + 1 == DYNAMIXEL_MOTOR_SIZE){
+                printf("\n");
+            }
+        }
+
+        for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
+            printf("  DYNA Motor Torque %d : %f  ",index+1,dyna_torque[index]);
+            if(index + 1 == DYNAMIXEL_MOTOR_SIZE){
+                printf("\n");
+            }
+        }
 
         zmq::message_t rmd_torque_pub_message(rmd_torque.data(),rmd_torque.size()*sizeof(float));
         zmq::message_t dynamixel_torque_pub_message(dyna_torque.data(),dyna_torque.size()*sizeof(float));

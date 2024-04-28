@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.23.0)
 project(run)
 
 option(PYTHON_BINDINGS "Building Python bindings" OFF)
@@ -38,7 +38,8 @@ find_package(ZeroMQ REQUIRED)
 
 add_executable(rmd_run src/rmd_run.cpp)
 add_executable(motor_run src/motor_run.cpp)
-add_executable(dyna_run src/dynamixel_run.cpp)
+add_executable(dyna_run src/dynamixel_run.cpp
+        ../math/transform.hpp)
 
 target_include_directories(rmd_run PRIVATE    ${ROOT_DIRECTORY})
 target_include_directories(motor_run PRIVATE    ${ROOT_DIRECTORY})

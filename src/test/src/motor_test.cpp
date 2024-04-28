@@ -1,5 +1,5 @@
 #include "utilities/include/timer.hpp"
-#include "utilities/include/shm.hpp"
+#include "utilities/include/address.hpp"
 
 #include <stdint.h>
 #include <string>
@@ -28,13 +28,25 @@ int main(){
 
     zmq::context_t context(1);
     zmq::socket_t torque_publisher(context,ZMQ_PUB);
+    zmq::socket_t rmd_angle_subscriber(context,ZMQ_SUB);
+    zmq::socket_t dyna_angle_subscriber(context,ZMQ_SUB);
 
     std::stringstream tp;
+    std::stringstream ras;
+    std::stringstream das;
     std::string host = "localhost";
+    zmq::sockopt::array_option<ZMQ_SUBSCRIBE,1> socketopt;
 
     tp << "tcp://*:" << MOTOR_ADDR;
+    ras << "tcp://" << "localhost:"<< RMD_ANGLE_ADDR;
+    das << "tcp://" << "localhost:" << DYNAMIXEL_ANGLE_ADDR;
 
     torque_publisher.bind(tp.str());
+    rmd_angle_subscriber.connect(ras.str());
+    dyna_angle_subscriber.connect(das.str());
+    rmd_angle_subscriber.set(socketopt,"");
+    dyna_angle_subscriber.set(socketopt,"");
+    
 
     std::cout << "Debug 1" << std::endl;
 
@@ -71,8 +83,28 @@ int main(){
     zmq::message_t motor_test_mesg(temp_torque_array.data(),sizeof(float)*ROBOT_MOTOR_SIZE) ;
     torque_publisher.send(motor_test_mesg,zmq::send_flags::none);
 
+    zmq::message_t rmd_angle_mesg(sizeof(float)*RMD_MOTOR_SIZE);
+    zmq::message_t dyna_angle_mesg(sizeof(float)*DYNAMIXEL_MOTOR_SIZE);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));  // Sleep for 0.1 seconds
+    size_t r_size = rmd_angle_mesg.size() / sizeof(float); // Calculate how many floats are in the message
+    size_t d_size = dyna_angle_mesg.size() / sizeof(float); // Calculate how many floats are in the message
+
+    auto r_data = static_cast<float*>(rmd_angle_mesg.data());
+    auto d_data = static_cast<float*>(dyna_angle_mesg.data());
+
+
+    for (size_t i = 0; i < r_size; ++i) {
+        std::cout << "RMD Motor Angle : ";
+        std::cout<< r_data[i] ;
+    }
+    for (size_t i = 0; i < d_size; ++i) {
+        std::cout << "Dyna Motor Angle :  " ;
+        std::cout <<  d_data[i] << " degrees";
+    }
+    std::cout << std::endl;
+
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));  // Sleep for 0.01 seconds
 }
 
 

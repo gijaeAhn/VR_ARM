@@ -2,8 +2,8 @@
 // Created by gj on 24. 3. 5.
 //
 
-#ifndef VR_ARM_TIMER_HPP
-#define VR_ARM_TIMER_HPP
+#ifndef UTILITIES_TIMER_HPP
+#define UTILITIES_TIMER_HPP
 
 
 #include <chrono>
@@ -52,4 +52,4 @@ struct Timer{
 
 }
 
-#endif //VR_ARM_TIMER_HPP
+#endif //UTILITIES_TIMER_HPP

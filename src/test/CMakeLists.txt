@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.23.0)
 project(robot)
 
 option(PYTHON_BINDINGS "Building Python bindings" OFF)
@@ -49,6 +49,12 @@ target_include_directories(motor_test  PUBLIC
 target_link_libraries(motor_test PUBLIC
                       libzmq-static)  
 
+add_executable(dynamixel_test src/dynamixel_test.cpp)
+target_include_directories(dynamixel_test PUBLIC
+        ${CMAKE_SOURCE_DIR}
+        ${rmd_driver_SOURCE_DIR}/include)
+target_link_libraries(dynamixel_test
+                      dynamixel_sdk)
 
 
 

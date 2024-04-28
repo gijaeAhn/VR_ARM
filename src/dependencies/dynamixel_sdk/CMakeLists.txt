@@ -1,7 +1,7 @@
 ################################################################################
 # Set minimum required version of cmake, project name and compile options
 ################################################################################
-cmake_minimum_required(VERSION 3.16.2)
+cmake_minimum_required(VERSION 3.23.0)
 project(dynamixel_sdk
         LANGUAGES CXX)
 
