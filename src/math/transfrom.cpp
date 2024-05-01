@@ -4,135 +4,125 @@ Transform::Transform() {
     clear();
 }
 
-void Transform::clear() {
-    // Initialize to identity matrix:
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            t[i][j] = 0;
+Transform::~Transform() {}
 
-    t[0][0] = 1;
-    t[1][1] = 1;
-    t[2][2] = 1;
-    t[3][3] = 1;
+
+void Transform::clear() {
+    t.setIdentity();
 }
 
 Transform& Transform::translate(double x, double y, double z) {
-    t[0][3] += t[0][0]*x + t[0][1]*y + t[0][2]*z;
-    t[1][3] += t[1][0]*x + t[1][1]*y + t[1][2]*z;
-    t[2][3] += t[2][0]*x + t[2][1]*y + t[2][2]*z;
+    Eigen::Matrix4d translation;
+    translation <<  1, 0, 0, x,
+                    0, 1, 0, y,
+                    0, 0, 1, z,
+                    0, 0, 0, 1;
+    t = t * translation;
     return *this;
 }
 
-Transform& Transform::translate(const double* p) {
-    t[0][3] += t[0][0]*p[0] + t[0][1]*p[1] + t[0][2]*p[2];
-    t[1][3] += t[1][0]*p[0] + t[1][1]*p[1] + t[1][2]*p[2];
-    t[2][3] += t[2][0]*p[0] + t[2][1]*p[1] + t[2][2]*p[2];
+Transform& Transform::translate(const Eigen::Vector3d& p){
+    Eigen::Matrix4d translation;
+    translation <<  1, 0, 0, p.x(),
+                    0, 1, 0, p.y(),
+                    0, 0, 1, p.z(),
+                    0, 0, 0, 1;
+    t = t * translation;
     return *this;
 }
 
-Transform& Transform::translateNeg(const double* p) {
-    t[0][3] -= t[0][0]*p[0] + t[0][1]*p[1] + t[0][2]*p[2];
-    t[1][3] -= t[1][0]*p[0] + t[1][1]*p[1] + t[1][2]*p[2];
-    t[2][3] -= t[2][0]*p[0] + t[2][1]*p[1] + t[2][2]*p[2];
-    return *this;
-}
 
 Transform& Transform::translateX(double x) {
-    t[0][3] += t[0][0]*x;
-    t[1][3] += t[1][0]*x;
-    t[2][3] += t[2][0]*x;
+    t(0,3) += t(0,0) * x;
+    t(1,3) += t(1,0) * x;
+    t(2,3) += t(2,0) * x;
     return *this;
 }
 
 Transform& Transform::translateY(double y) {
-    t[0][3] += t[0][1]*y;
-    t[1][3] += t[1][1]*y;
-    t[2][3] += t[2][1]*y;
+    t(0,3) += t(0,1) * y;
+    t(1,3) += t(1,1) * y;
+    t(2,3) += t(2,1) * y;
     return *this;
 }
 
 Transform& Transform::translateZ(double z) {
-    t[0][3] += t[0][2]*z;
-    t[1][3] += t[1][2]*z;
-    t[2][3] += t[2][2]*z;
+    t(0,3) += t(0,2) * z;
+    t(1,3) += t(1,2) * z;
+    t(2,3) += t(2,2) * z;
     return *this;
 }
 
-Transform& Transform::rotateX(double a) {
-    double ca = cos(a);
-    double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double ty = t[i][1];
-        double tz = t[i][2];
-        t[i][1] = ca*ty + sa*tz;
-        t[i][2] = -sa*ty + ca*tz;
-    }
+
+Transform& Transform::rotateX(double angle) {
+    double c = cos(angle);
+    double s = sin(angle);
+    Eigen::Matrix4d rotation;
+    rotation << 1, 0,  0, 0,
+                0, c, -s, 0,
+                0, s,  c, 0,
+                0, 0,  0, 1;
+    t = t * rotation;
     return *this;
 }
 
-Transform& Transform::rotateY(double a) {
-    double ca = cos(a);
-    double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double tx = t[i][0];
-        double tz = t[i][2];
-        t[i][0] = ca*tx - sa*tz;
-        t[i][2] = sa*tx + ca*tz;
-    }
+Transform& Transform::rotateY(double angle) {
+    double c = cos(angle);
+    double s = sin(angle);
+    Eigen::Matrix4d rotation;
+    rotation << c,  0, s, 0,
+                0,  1, 0, 0,
+                -s, 0, c, 0,
+                0,  0, 0, 1;
+    t = t * rotation;
     return *this;
 }
 
-Transform& Transform::rotateZ(double a) {
-    double ca = cos(a);
-    double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double tx = t[i][0];
-        double ty = t[i][1];
-        t[i][0] = ca*tx + sa*ty;
-        t[i][1] = -sa*tx + ca*ty;
-    }
+Transform& Transform::rotateZ(double angle) {
+    double c = cos(angle);
+    double s = sin(angle);
+    Eigen::Matrix4d rotation;
+    rotation << c, -s, 0, 0,
+                s,  c, 0, 0,
+                0,  0, 1, 0,
+                0,  0, 0, 1;
+    t = t * rotation;
     return *this;
 }
 
 Transform& Transform::rotateDotX(double a) {
     double ca = cos(a);
     double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double ty = t[i][1];
-        double tz = t[i][2];
-        t[i][0] = 0;
-        t[i][1] = -sa*ty + ca*tz;
-        t[i][2] = -ca*ty -sa*tz;
-        t[i][3] = 0;
-    }
+    Eigen::Matrix4d rotDotX;
+    rotDotX <<  1, 0,   0,   0,
+                0, -sa, -ca, 0,
+                0, ca,  -sa, 0,
+                0, 0,   0,   1;
+    t *= rotDotX;  // Apply the rotation derivative matrix
     return *this;
 }
 
 Transform& Transform::rotateDotY(double a) {
     double ca = cos(a);
     double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double tx = t[i][0];
-        double tz = t[i][2];
-        t[i][0] = -sa*tx - ca*tz;
-        t[i][1] = 0;
-        t[i][2] = ca*tx - sa*tz;
-        t[i][3] = 0;
-    }
+    Eigen::Matrix4d rotDotY;
+    rotDotY << -sa, 0, ca,  0,
+                0,  1, 0,   0,
+                -ca, 0, -sa, 0,
+                0,  0, 0,   1;
+    t *= rotDotY;  // Apply the rotation derivative matrix
     return *this;
 }
 
 Transform& Transform::rotateDotZ(double a) {
     double ca = cos(a);
     double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double tx = t[i][0];
-        double ty = t[i][1];
-        t[i][0] = -sa*tx + ca*ty;
-        t[i][1] = -ca*tx - sa*ty;
-        t[i][2] = 0;
-        t[i][3] = 0;
-    }
+    Eigen::Matrix4d rotDotZ;
+    rotDotZ << -sa, -ca, 0, 0,
+                ca, -sa, 0, 0,
+                0,   0,  1, 0,
+                0,   0,  0, 1;
+    t *= rotDotZ;  // Apply the rotation derivative matrix
     return *this;
 }
 
@@ -141,49 +131,43 @@ Transform& Transform::rotateDotZ(double a) {
 Transform& Transform::rotateDotXNeg(double a) {
     double ca = cos(a);
     double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double ty = t[i][1];
-        double tz = t[i][2];
-        t[i][0] = 0;
-        t[i][1] = -(-sa*ty + ca*tz);
-        t[i][2] = -(-ca*ty -sa*tz);
-        t[i][3] = 0;
-    }
+    Eigen::Matrix4d rotDotXNeg;
+    rotDotXNeg << 1, 0,   0,   0,
+            0, sa,  ca, 0,  // Note the inverted signs for sine components
+            0, -ca, sa, 0,
+            0, 0,   0,   1;
+    t *= rotDotXNeg;  // Apply the negative rotation derivative matrix
     return *this;
 }
 
 Transform& Transform::rotateDotYNeg(double a) {
     double ca = cos(a);
     double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double tx = t[i][0];
-        double tz = t[i][2];
-        t[i][0] = -(-sa*tx - ca*tz);
-        t[i][1] = 0;
-        t[i][2] = -(ca*tx - sa*tz);
-        t[i][3] = 0;
-    }
+    Eigen::Matrix4d rotDotYNeg;
+    rotDotYNeg <<   sa, 0, -ca, 0,
+                    0,  1,  0,  0,
+                    ca, 0,  sa, 0,
+                    0,  0,  0,  1;
+    t *= rotDotYNeg;  // Apply the negative rotation derivative matrix
     return *this;
 }
 
 Transform& Transform::rotateDotZNeg(double a) {
     double ca = cos(a);
     double sa = sin(a);
-    for (int i = 0; i < 3; i++) {
-        double tx = t[i][0];
-        double ty = t[i][1];
-        t[i][0] = -(-sa*tx + ca*ty);
-        t[i][1] = -(-ca*tx - sa*ty);
-        t[i][2] = 0;
-        t[i][3] = 0;
-    }
+    Eigen::Matrix4d rotDotZNeg;
+    rotDotZNeg <<   sa,  ca, 0, 0,
+                    -ca, sa, 0, 0,
+                    0,   0,  1, 0,
+                    0,   0,  0, 1;
+    t *= rotDotZNeg;  // Apply the negative rotation derivative matrix
     return *this;
 }
 
-
-
-
-
+void Transform::trcopy(Transform &out) {
+    // Directly copy using Eigen's assignment operator
+    out.t = t;
+}
 
 Transform& Transform::mDH(double alpha, double a, double theta, double d) {
     /*
@@ -201,210 +185,160 @@ Transform& Transform::mDH(double alpha, double a, double theta, double d) {
     return *this;
 }
 
-void Transform::apply(double x[3]) {
-    double x0[3];
-    for (int i = 0; i < 3; i++) {
-        x0[i] = x[i];
-    }
-    for (int i = 0; i < 3; i++) {
-        x[i] = t[i][3];
-        for (int j = 0; j < 3; j++) {
-            x[i] += t[i][j]*x0[j];
-        }
-    }
-}
-
-void Transform::apply0(double* x) {
-    for (int i = 0; i < 3; i++) x[i] = t[i][3];
+void Transform::apply(Eigen::Vector3d& x) const{
+    for (int i = 0; i < 3; i++) x[i] = t(i,3);
 }
 
 
-double Transform::getZ() {return t[2][3];}
-double const Transform::getZ() const{return t[2][3];}
+double Transform::getX() {return t(0,3);}
+double Transform::getY() {return t(1,3);}
+double Transform::getZ() {return t(2,3);}
 
-void const Transform::getXYZ(double* ret) const{
-    ret[0]=t[0][3];
-    ret[1]=t[1][3];
-    ret[2]=t[2][3];
+
+double Transform::operator() (int i, int j) const {
+    return t(i,j);
 }
 
-double const Transform::operator() (int i, int j) const {
-    return t[i][j];
-}
 
-double& Transform::operator() (int i, int j) {
-    return t[i][j];
-}
 
-Transform operator* (const Transform &t1, const Transform &t2) {
-    Transform t;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 4; j++) {
-            t(i,j) = t1(i,0)*t2(0,j) + t1(i,1)*t2(1,j) +
-                     t1(i,2)*t2(2,j) + t1(i,3)*t2(3,j);
-        }
-    }
-    return t;
+Transform operator* (const Transform &lhs, const Transform &rhs) {
+    Transform result;
+    result.t = lhs.t * rhs.t;
+    return result;
 }
 
 Transform inv (const Transform &t1) {
-    Transform t;
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            // Transpose rotation:
-            t(i,j) = t1(j,i);
-            // Compute inv translation:
-            t(i,3) -= t1(j,i)*t1(j,3);
-        }
-    }
-    return t;
-}
-
-Transform trcopy (const Transform &t1) {
-    Transform t;
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            t(i,j) = t1(i,j);
-        }
-    }
-    return t;
+    Transform result;
+    result.t = t1.t.inverse();
+    return result;
 }
 
 
-Transform transform6D(const double p[6]) {
-    Transform t;
-    //  t = t.translate(p[0],p[1],p[2]).rotateZ(p[5]).rotateY(p[4]).rotateX(p[3]);
+Transform transform6D(const Eigen::VectorXd p) {
+    Transform result;
+    // Extract parameters for clarity
+    double px = p[0], py = p[1], pz = p[2];
+    double rx = p[3], ry = p[4], rz = p[5];
 
-    double cwx = cos(p[3]);
-    double swx = sin(p[3]);
-    double cwy = cos(p[4]);
-    double swy = sin(p[4]);
-    double cwz = cos(p[5]);
-    double swz = sin(p[5]);
-    t(0,0) = cwy*cwz;
-    t(0,1) = swx*swy*cwz-cwx*swz;
-    t(0,2) = cwx*swy*cwz+swx*swz;
-    t(0,3) = p[0];
-    t(1,0) = cwy*swz;
-    t(1,1) = swx*swy*swz+cwx*cwz;
-    t(1,2) = cwx*swy*swz-swx*cwz;
-    t(1,3) = p[1];
-    t(2,0) = -swy;
-    t(2,1) = swx*cwy;
-    t(2,2) = cwx*cwy;
-    t(2,3) = p[2];
-    return t;
+    // Compute cosine and sine of angles
+    double cx = cos(rx), sx = sin(rx);
+    double cy = cos(ry), sy = sin(ry);
+    double cz = cos(rz), sz = sin(rz);
+
+    // Build rotation matrix using ZYX order
+    Eigen::Matrix4d m;
+    m(0,0) = cy * cz;
+    m(0,1) = sx * sy * cz - cx * sz;
+    m(0,2) = cx * sy * cz + sx * sz;
+    m(0,3) = px;
+
+    m(1,0) = cy * sz;
+    m(1,1) = sx * sy * sz + cx * cz;
+    m(1,2) = cx * sy * sz - sx * cz;
+    m(1,3) = py;
+
+    m(2,0) = -sy;
+    m(2,1) = sx * cy;
+    m(2,2) = cx * cy;
+    m(2,3) = pz;
+
+    m(3,0) = 0;
+    m(3,1) = 0;
+    m(3,2) = 0;
+    m(3,3) = 1;
+
+    result.t = m;  // Set the transformation matrix to the computed matrix
+    return result;
 }
 
-Transform transformQuatP(const double q[7]) {
-    Transform t;
+Transform transformQuatP(const Eigen::VectorXd& q) {
+    Transform result;
+    // Calculate the rotation matrix components from the quaternion
+    result.t(0,0) = 1 - 2 * q[2] * q[2] - 2 * q[3] * q[3];
+    result.t(0,1) = 2 * q[1] * q[2] - 2 * q[3] * q[0];
+    result.t(0,2) = 2 * q[1] * q[3] + 2 * q[2] * q[0];
+    result.t(0,3) = q[4];
 
-    t(0,0) = 1-2*q[2]*q[2]-2*q[3]*q[3];
-    t(0,1) = 2*q[1]*q[2]-2*q[3]*q[0];
-    t(0,2) = 2*q[1]*q[3]+2*q[2]*q[0];
-    t(0,3) = q[4];
-    t(1,0) = 2*q[1]*q[2]+2*q[3]*q[0];
-    t(1,1) = 1-2*q[1]*q[1]-2*q[3]*q[3];
-    t(1,2) = 2*q[2]*q[3]-2*q[1]*q[0];
-    t(1,3) = q[5];
-    t(2,0) = 2*q[1]*q[3]-2*q[2]*q[0];
-    t(2,1) = 2*q[2]*q[3]+2*q[1]*q[0];
-    t(2,2) = 1-2*q[1]*q[1]-2*q[2]*q[2];
-    t(2,3) = q[6];
-    return t;
+    result.t(1,0) = 2 * q[1] * q[2] + 2 * q[3] * q[0];
+    result.t(1,1) = 1 - 2 * q[1] * q[1] - 2 * q[3] * q[3];
+    result.t(1,2) = 2 * q[2] * q[3] - 2 * q[1] * q[0];
+    result.t(1,3) = q[5];
+
+    result.t(2,0) = 2 * q[1] * q[3] - 2 * q[2] * q[0];
+    result.t(2,1) = 2 * q[2] * q[3] + 2 * q[1] * q[0];
+    result.t(2,2) = 1 - 2 * q[1] * q[1] - 2 * q[2] * q[2];
+    result.t(2,3) = q[6];
+
+    result.t(3,0) = result.t(3,1) = result.t(3,2) = 0;
+    result.t(3,3) = 1;  // Ensure the bottom row is correct for homogeneous coordinates
+    return result;
 }
 
 
-std::vector<double> position6D(const Transform &t1) {
-    std::vector<double> p(6);
+Eigen::VectorXd position6D(const Transform &t1) {
+    Eigen::VectorXd p(6);
     p[0] = t1(0,3);
     p[1] = t1(1,3);
     p[2] = t1(2,3);
 
-    //ZYX Tait-bryan euler angle (rotZ -> rotY -> rotX )
+    // Calculate Euler angles from the rotation matrix
+    p[3] = atan2(t1(2,1), t1(2,2)); // Roll
+    p[4] = asin(-t1(2,0)); // Pitch
+    p[5] = atan2(t1(1,0), t1(0,0)); // Yaw
 
-    //atan2 (R32, R33) : yaw
-    //-asin(R31) : pitch
-    //atan2 (R21, R11) : roll
-
-    p[3] = atan2(t1(2,1), t1(2,2)); //roll
-    p[4] = -asin(t1(2,0)); //pitch
-    p[5] = atan2(t1(1,0), t1(0,0)); //yaw
-
-    //TODO: singular when p[4]=pi/2 or -pi/2
-
-    if (1.0-t1(2,0)<1E-6){
-        // printf("SINGULAR1!!!\n");
-        p[3]=atan2(-t1(1,2),t1(1,1));
-        p[4]=-M_PI/2.0;
-        p[5] = 0.0;
-
-    }
-
-    if ( t1(2,0)+1.0<1E-6)  {
-        // printf("SINGULAR2!!!\n");
-        p[3]=atan2(-t1(1,2),t1(1,1));
-        p[4]=M_PI/2.0;
-        p[5] = 0.0;
-
+    // Handle gimbal lock scenario
+    if (fabs(cos(p[4])) < 1E-6) {
+        // Adjust calculations when pitch is near +/-90 degrees
+        p[3] = atan2(-t1(1,2), t1(1,1));
+        p[4] = asin(-t1(2,0));
+        p[5] = 0;  // Yaw is undefined in this case
     }
     return p;
 }
 
 
-//SJ: not tested yet
-std::vector<double> to_quatp(const Transform &t) {
-    std::vector<double> q(7);
-    double tr=t(0,0)+t(1,1)+t(2,2);
-    if(tr>0){
-        double s = sqrt(tr + 1.0) * 2.0;
+//not tested yet
+Eigen::VectorXd to_quatp(const Transform &t) {
+    Eigen::VectorXd q(7);
+    double tr = t(0,0) + t(1,1) + t(2,2);
+
+    if (tr > 0) {
+        double s = sqrt(tr + 1.0) * 2;  // S is the sum of trace plus one, times two
         q[0] = 0.25 * s;
         q[1] = (t(2,1) - t(1,2)) / s;
         q[2] = (t(0,2) - t(2,0)) / s;
         q[3] = (t(1,0) - t(0,1)) / s;
-    }else{
-        if ( (t(0,0)>t(1,1)) && (t(0,0)>t(2,2)) ){
-            double s = sqrt(1.0 + t(0,0) - t(1,1) - t(2,2)) * 2.0;
-            q[0] = (t(2,1) - t(1,2)) / s;
-            q[1] = 0.25 * s;
-            q[2] = (t(0,1) + t(1,0)) / s;
-            q[3] = (t(0,2) + t(2,0)) / s;
-        }else{
-            if (t(1,1)>t(2,2)){
-                double s = sqrt(1.0 + t(1,1) - t(0,0) - t(2,2)) * 2.0;
-                q[0] = (t(0,2) - t(2,0)) / s;
-                q[1] = (t(0,1) + t(1,0)) / s;
-                q[2] = 0.25 * s;
-                q[3] = (t(1,2) + t(2,1)) / s;
-            }else{
-                double s = sqrt(1.0 + t(2,2) - t(0,0) - t(1,1)) * 2.0;
-                q[0] = (t(1,0) - t(0,1)) / s;
-                q[1] = (t(0,2) + t(2,0)) / s;
-                q[2] = (t(1,2) + t(2,1)) / s;
-                q[3] = 0.25 * s;
-            }
-        }
+    } else if (t(0,0) > t(1,1) && t(0,0) > t(2,2)) {
+        double s = sqrt(1.0 + t(0,0) - t(1,1) - t(2,2)) * 2;
+        q[0] = (t(2,1) - t(1,2)) / s;
+        q[1] = 0.25 * s;
+        q[2] = (t(0,1) + t(1,0)) / s;
+        q[3] = (t(0,2) + t(2,0)) / s;
+    } else if (t(1,1) > t(2,2)) {
+        double s = sqrt(1.0 + t(1,1) - t(0,0) - t(2,2)) * 2;
+        q[0] = (t(0,2) - t(2,0)) / s;
+        q[1] = (t(0,1) + t(1,0)) / s;
+        q[2] = 0.25 * s;
+        q[3] = (t(1,2) + t(2,1)) / s;
+    } else {
+        double s = sqrt(1.0 + t(2,2) - t(0,0) - t(1,1)) * 2;
+        q[0] = (t(1,0) - t(0,1)) / s;
+        q[1] = (t(0,2) + t(2,0)) / s;
+        q[2] = (t(1,2) + t(2,1)) / s;
+        q[3] = 0.25 * s;
     }
+
+    // Set the translation components
     q[4] = t(0,3);
     q[5] = t(1,3);
     q[6] = t(2,3);
+
     return q;
 }
 
-void getAngularVelocityTensor(const Transform &adot, const Transform &ainv, double* av){
-    Transform w = adot*ainv;
-
-/*
-  printf("W matrix:\n");
-  printf("%.2f %.2f %.2f\n",w(0,0),w(1,0),w(2,0));
-  printf("%.2f %.2f %.2f\n",w(0,1),w(1,1),w(2,1));
-  printf("%.2f %.2f %.2f\n",w(0,2),w(1,2),w(2,2));
-*/
-
-//pointer error here
-    av[0]=w(1,2);
-    av[1]=w(2,0);
-    av[2]=w(0,1);
+void getAngularVelocityTensor(const Transform &adot, const Transform &ainv,Eigen::MatrixXd angularVelosityTensor ){
+    Transform result = adot*ainv;
+    angularVelosityTensor = result.t;
 }
 
 
@@ -419,7 +353,7 @@ void printTransform(Transform tr) {
     printf("\n");
 }
 
-void printVector(std::vector<double> v) {
+void printVector(Eigen::VectorXd v) {
     for (int i = 0; i < (int) v.size(); i++) {
         printf("%.4g\n", v[i]);
     }

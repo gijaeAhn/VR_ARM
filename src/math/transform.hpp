@@ -10,116 +10,54 @@
 #include <array>
 #include <math.h>
 
-
-
 class Transform {
+
 public:
-    Transform();
-    virtual ~Transform() {}
-
+    Transform();;
     void clear();
-    Transform &translate(double x, double y, double z);
-    Transform &translate(const double *p);
 
-    Transform &translateX(double x = 0);
-    Transform &translateY(double y = 0);
-    Transform &translateZ(double z = 0);
-    Transform &rotateX(double a = 0);
-    Transform &rotateY(double a = 0);
-    Transform &rotateZ(double a = 0);
-    Transform &rotateDotX(double a = 0);
-    Transform &rotateDotY(double a = 0);
-    Transform &rotateDotZ(double a = 0);
-
-    Transform &translateNeg(const double *p);
-    Transform &rotateDotXNeg(double a = 0);
-    Transform &rotateDotYNeg(double a = 0);
-    Transform &rotateDotZNeg(double a = 0);
-
-
-    Transform &mDH(double alpha, double a, double theta, double d);
-    void apply(double x[3]);
-    void apply0(double* x);
-
-
+    Transform& translate(double x=0, double y=0, double z=0);
+    Transform& translate(const Eigen::Vector3d& p);
+    Transform& translateX(double x);
+    Transform& translateY(double y);
+    Transform& translateZ(double z);
+    Transform& rotateX(double angle);
+    Transform& rotateY(double angle);
+    Transform& rotateZ(double angle);
+    Transform& rotateDotX(double a);
+    Transform& rotateDotY(double a);
+    Transform& rotateDotZ(double a);
+    Transform& rotateDotXNeg(double a);
+    Transform& rotateDotYNeg(double a);
+    Transform& rotateDotZNeg(double a);
+    double getX();
+    double getY();
     double getZ();
-    const void getXYZ(double* ret) const;
-    const double getZ() const;
 
+    void trcopy (Transform &out);
 
-    double& operator() (int i, int j);
-    const double operator() (int i, int j) const;
+    void apply(Eigen::Vector3d& x) const;
 
-private:
-    double t[4][4];
+    void getXYZ(Eigen::Vector3d& ret) const { ret = t.block<3,1>(0,3); }
+
+    double operator() (int i, int j) const ;
+
+    Transform& mDH(double alpha, double a, double theta, double d);
+
+    Eigen::Matrix4d t;
 };
 
-Transform operator* (const Transform &t1, const Transform &t2);
-Transform inv (const Transform &t1);
-Transform trcopy (const Transform &t1);
-Transform transform6D(const double p[6]);
-Transform transformQuatP(const double q[7]);
-std::vector<double> position6D(const Transform &t1);
-std::vector<double> to_quatp(const Transform &t1);
+Transform operator* (const Transform &lhs, const Transform &rhs);
+Transform inv (const Transform &t);
+Transform transform6D(const Eigen::VectorXd p);
+Transform transformQuatP(const Eigen::VectorXd q);
+Eigen::VectorXd position6D(const Transform &t);
+Eigen::VectorXd to_quatp(const Transform &t);
 
-void getAngularVelocityTensor(const Transform &adot, const Transform &ainv, double *av);
-
-
-void printTransform(Transform tr);
-void printVector(std::vector<double> v);
-
-class Jacobian {
-public:
-    Jacobian();
-    virtual ~Jacobian() {}
-
-    Jacobian &calculate6(
-            const Transform &A,
-            const Transform &Adot0,
-            const Transform &Adot1,
-            const Transform &Adot2,
-            const Transform &Adot3,
-            const Transform &Adot4,
-            const Transform &Adot5,
-            double mass, const double* inertiaMatrix);
+void getAngularVelocityTensor(const Transform &adot, const Transform &ainv, Eigen::MatrixXd angularVelocityTensor);
 
 
-    Jacobian &calculate7(
-            const Transform &A,
-            const Transform &Adot0,
-            const Transform &Adot1,
-            const Transform &Adot2,
-            const Transform &Adot3,
-            const Transform &Adot4,
-            const Transform &Adot5,
-            const Transform &Adot6,
-            double mass, const double* inertiaMatrix);
-
-    Jacobian &calculateVel7(
-            const Transform &A,
-            const Transform &Adot0,
-            const Transform &Adot1,
-            const Transform &Adot2,
-            const Transform &Adot3,
-            const Transform &Adot4,
-            const Transform &Adot5,
-            const Transform &Adot6);
-
-    void clear();
-
-
-    void calculate_b_matrix(const double*inertiaMatrix);
-    void dump_b_matrix(double* ret);
-    void dump_jacobian(double* ret);
-    void accumulate_stall_torque(double* torque,double forcex, double forcey, double forcez);
-    void print();
-
-private:
-    int num_of_joints;
-    double m;
-    double b[7][7];
-    double v[7][3];
-    double w[7][3];
-};
+void printTransform(Transform &t);
+void printVector(Eigen::VectorXd &t);
 
 #endif //TRANSFORM_HPP

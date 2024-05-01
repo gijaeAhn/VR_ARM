@@ -4,9 +4,6 @@
 
 #include <fcntl.h>
 #include <termios.h>
-#define STDIN_FILENO 0
-
-
 //SDK
 #include "dependencies/dynamixel_sdk/include/dynamixel_sdk/dynamixel_sdk.h"
 //Utilities
@@ -29,8 +26,6 @@
 #include <csignal>
 #include <cstdint>
 #include <math.h>
-
-
 //////// DYNAMIXEL CONFIGURATION
 
 // Control table address
@@ -54,67 +49,28 @@
 
 #define TORQUE_ENABLE                   1                   // Value for enabling the torque
 #define TORQUE_DISABLE                  0                   // Value for disabling the torque
-#define DXL_MINIMUM_POSITION_VALUE      -150000             // Dynamixel will rotate between this value
-#define DXL_MAXIMUM_POSITION_VALUE      150000              // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
-#define DXL_MOVING_STATUS_THRESHOLD     20                  // Dynamixel moving status threshold
 
 #define TORQUE_CONSTANT                 2.12
 #define CURRENT_UNIT                    2.69
 
 #define ESC_ASCII_VALUE                 0x1b
+#define DEVICE_NAME                     "/dev/ttyUSB0"
 
-///////
+/////// Gloabl Variables
 dynamixel::PacketHandler* packetHandler = nullptr;
 dynamixel::PortHandler* portHandler = nullptr;
 
 
-
-
-int getch()
-{
-#if defined(__linux__) || defined(__APPLE__)
-  struct termios oldt, newt;
-  int ch;
-  tcgetattr(STDIN_FILENO, &oldt);
-  newt = oldt;
-  newt.c_lflag &= ~(ICANON | ECHO);
-  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-  ch = getchar();
-  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-  return ch;
-#elif defined(_WIN32) || defined(_WIN64)
-  return _getch();
-#endif
-}
+int getch(void);
+int kbhit(void);
+void signalHandler(int signum);
 
 
 
 
 
-void signalHandler(int signum)
-{
-    int dxl_comm_result = COMM_TX_FAIL;             // Communication result
-    uint8_t dxl_error = 0;                          // Dynamixel error
-    std::cout << "Interrupt signal (" << signum << " ) recieved.\n" << std::endl;
 
-    // // Disable Dynamixel Torque
-    while(dxl_comm_result != COMM_SUCCESS) {
-        for (uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++) {
-            dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL1_ID + index, ADDR_TORQUE_ENABLE,
-                                                            TORQUE_DISABLE, &dxl_error);
-            if (dxl_comm_result != COMM_SUCCESS) {
-                printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-            } else if (dxl_error != 0) {
-                printf("%s\n", packetHandler->getRxPacketError(dxl_error));
-            }
-        }
-    }
 
-    // // Close port
-     portHandler->closePort();
-
-    std::exit(EXIT_SUCCESS);
-}
 
 
 
@@ -122,10 +78,10 @@ void signalHandler(int signum)
 int main(){
     std::signal(SIGINT, signalHandler);
 
+    //ZMQ SETTING
     zmq::context_t context(1);
     zmq::socket_t dyna_torque_subscriber(context,ZMQ_SUB);
     zmq::socket_t dyna_angle_publisher(context,ZMQ_PUB);
-
     std::stringstream dts;
     std::stringstream dap;
     std::string host = "localhost";
@@ -135,34 +91,28 @@ int main(){
     dyna_angle_publisher.bind(dap.str());
     zmq::sockopt::array_option<ZMQ_SUBSCRIBE,1> sockopt;
     dyna_torque_subscriber.set(sockopt,"");
-   
-
     zmq::message_t torque_sub_message(sizeof(float)*DYNAMIXEL_MOTOR_SIZE);
     zmq::message_t angle_pub_message(sizeof(float)*DYNAMIXEL_MOTOR_SIZE);
     auto torque_sub_message_ptr = reinterpret_cast<float*>(torque_sub_message.data());
     auto angle_pub_message_ptr = reinterpret_cast<float*>(angle_pub_message.data());
-
-    utilities::Timer timer;
+    //ZMQ SETTING END
 
 
 
     //DYNAMIXEL INIT
     packetHandler = dynamixel::PacketHandler::getPacketHandler(PROTOCOL_VERSION);
-    portHandler = dynamixel::PortHandler::getPortHandler("/dev/ttyUSB0");
-
+    portHandler = dynamixel::PortHandler::getPortHandler(DEVICE_NAME);
     dynamixel::GroupBulkWrite groupBulkWrite(portHandler, packetHandler);
     dynamixel::GroupBulkRead groupBulkRead(portHandler, packetHandler);
-
-
     int dxl_comm_result = COMM_TX_FAIL;             // Communication result
     bool dxl_addparam_result = false;               // addParam result
     bool dxl_getdata_result = false;                // GetParam result
-
     uint8_t dxl_error = 0;                          // Dynamixel error
     uint8_t torque_goal[DYNAMIXEL_MOTOR_SIZE][2];
+    //DYNAMIXEL INIT END
 
+    //IN USE ARRAYS
     std::array<float,DYNAMIXEL_MOTOR_SIZE> sumBuffer;
-    //May be not a float
     std::array<float,DYNAMIXEL_MOTOR_SIZE> angBuffer;
     std::array<float,DYNAMIXEL_MOTOR_SIZE> currentBuffer;
     std::array<int16_t,DYNAMIXEL_MOTOR_SIZE> unitCurrentBuffer;
@@ -173,14 +123,13 @@ int main(){
     currentBuffer.fill(0);
     unitAngBuffer.fill(0);
     homePosition.fill(0);
+    //
 
     // Open port
-    if (portHandler->openPort())
-    {
+    if (portHandler->openPort()){
         printf("Succeeded to open the port!\n");
     }
-    else
-    {
+    else{
         printf("Failed to open the port!\n");
         printf("Press any key to terminate...\n");
         getch();
@@ -188,12 +137,10 @@ int main(){
     }
 
     // Set port baudrate
-    if (portHandler->setBaudRate(4000000))
-    {
+    if (portHandler->setBaudRate(4000000)){
         printf("Succeeded to change the baudrate!\n");
     }
-    else
-    {
+    else{
         printf("Failed to change the baudrate!\n");
         printf("Press any key to terminate...\n");
         getch();
@@ -203,16 +150,13 @@ int main(){
 
     for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
       dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL1_ID + index, ADDR_TORQUE_ENABLE, TORQUE_ENABLE, &dxl_error);
-      if (dxl_comm_result != COMM_SUCCESS)
-      {
+      if (dxl_comm_result != COMM_SUCCESS){
         printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
       }
-      else if (dxl_error != 0)
-      {
+      else if (dxl_error != 0){
         printf("%s\n", packetHandler->getRxPacketError(dxl_error));
       }
-      else
-      {
+      else{
         printf("Dynamixel#%d has been successfully connected \n", DXL1_ID + index);
       }
     }
@@ -220,31 +164,26 @@ int main(){
 
     for(uint8_t index = 0 ; index < DYNAMIXEL_MOTOR_SIZE; index++){
       dxl_addparam_result = groupBulkRead.addParam(DXL1_ID + index, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
-      if (dxl_addparam_result != true)
-      {
+      if (dxl_addparam_result != true){
         fprintf(stderr, "[ID:%03d] grouBulkRead addparam failed", DXL1_ID + index);
         return 0;
       }
     }
    
     dxl_comm_result = groupBulkRead.txRxPacket();
-    if (dxl_comm_result != COMM_SUCCESS)
-    {
+    if (dxl_comm_result != COMM_SUCCESS){
       printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
     }
-    else if (groupBulkRead.getError(DXL1_ID, &dxl_error))
-    {
+    else if (groupBulkRead.getError(DXL1_ID, &dxl_error)){
       printf("[ID:%03d] %s\n", DXL1_ID, packetHandler->getRxPacketError(dxl_error));
     }
-    else if (groupBulkRead.getError(DXL2_ID, &dxl_error))
-    {
+    else if (groupBulkRead.getError(DXL2_ID, &dxl_error)){
       printf("[ID:%03d] %s\n", DXL2_ID, packetHandler->getRxPacketError(dxl_error));
     }
 
     for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE ; index ++){
       dxl_getdata_result = groupBulkRead.isAvailable(DXL1_ID + index, ADDR_PRESENT_POSITION, LEN_PRESENT_POSITION);
-      if (dxl_getdata_result != true)
-      {
+      if (dxl_getdata_result != true){
         fprintf(stderr, "[ID:%03d] groupBulkRead getdata failed", DXL1_ID + index);
         return 0;
       }
@@ -264,12 +203,11 @@ int main(){
    
 
 
+    int inputch = 0;
 
-
-    while(1)
-      {
+    while(inputch != 115){
         //Exit Code Here
-
+        inputch = getch();
         zmq::recv_result_t recv_result = dyna_torque_subscriber.recv(torque_sub_message,zmq::recv_flags::none);
 
         if(recv_result == -1){
@@ -284,9 +222,6 @@ int main(){
                   printf("\n");
               }
         }
-
-
-
         //Torque Constant( Torque / Current ) ~= 2.12 // Suppose it's linear
         //Protocol Unit = 2.69mA
         //Current Limit = 0 ~ 2047
@@ -298,9 +233,6 @@ int main(){
           torque_goal[index][0] = DXL_LOBYTE(unitCurrentBuffer[index]);  // Lower byte
           torque_goal[index][1] = DXL_HIBYTE(unitCurrentBuffer[index]);
         }
-
-     
-
         for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
           // Add parameter storage for Dynamixel#1 goal position
           dxl_addparam_result = groupBulkWrite.addParam(DXL1_ID + index, ADDR_CURRENT_GOAL, LEN_CURRENT_GOAL, torque_goal[index]);
@@ -311,8 +243,6 @@ int main(){
         }
         dxl_comm_result = groupBulkWrite.txPacket();
         if (dxl_comm_result != true) printf("%s\n", packetHandler->getTxRxResult(dxl_comm_result));
-
-        // Clear bulkwrite parameter storage
         groupBulkWrite.clearParam();
         //TX End
 
@@ -365,8 +295,58 @@ int main(){
         std::copy(angBuffer.begin(),angBuffer.end(),angle_pub_message_ptr);
         dyna_angle_publisher.send(angle_pub_message,zmq::send_flags::none);
       }
+    //END OF LOOP
+    //EXIT KEY == "s"
 
-
-
-      // return 0;
+    for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
+        unitCurrentBuffer[index] = 0;
+        torque_goal[index][0] = DXL_LOBYTE(unitCurrentBuffer[index]);  // Lower byte
+        torque_goal[index][1] = DXL_HIBYTE(unitCurrentBuffer[index]);
+    }
+    for(uint8_t index = 0; index < DYNAMIXEL_MOTOR_SIZE; index++){
+        dxl_addparam_result = groupBulkWrite.addParam(DXL1_ID + index, ADDR_CURRENT_GOAL, LEN_CURRENT_GOAL, torque_goal[index]);
+        if (dxl_addparam_result != true){
+            fprintf(stderr, "[ID:%03d] groupBulkWrite addparam failed", DXL1_ID + index);
+            return 0;
+        }
+    }
+    dxl_comm_result = groupBulkWrite.txPacket();
+    portHandler->clearPort();
+    portHandler->closePort();
+    return 0;
 }
+
+
+
+int kbhit(void) {
+    struct timeval tv = { 0L, 0L };
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+    return select(1, &fds, NULL, NULL, &tv);
+}
+
+int getch(void) {
+    struct termios oldt, newt;
+    int ch;
+    int oldf;
+
+    tcgetattr(STDIN_FILENO, &oldt);
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+    if (kbhit()) {
+        ch = getchar();
+    } else {
+        ch = -1; // No input
+    }
+
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+    fcntl(STDIN_FILENO, F_SETFL, oldf);
+    return ch;
+}
+
+
