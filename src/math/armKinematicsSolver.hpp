@@ -9,11 +9,13 @@
 #include "transform.hpp"
 #include "eigen3/Eigen/Dense"
 
+#include <math.h>
+#include "rigidBody.hpp"
+
 namespace math {
     namespace armKinematics {
 
         using jointList = Eigen::VectorXd;
-        using parameter = Eigen::MatrixXd;
 
         class armKinematicsSolver : public Solver<Transform, jointList> {
 
@@ -27,8 +29,15 @@ namespace math {
             void getInput(Transform&& inputTrans);
 
         private:
+            double shoulderHeight;
+            double upperArmLength;
+            double lowerArmLength;
+            double wrist1x;
+            double wrist1z;
+            double wrist2x;
+            double wrist2z;
 
-            parameter param_;
+
             Transform inputT_;
             jointList solution_;
         };

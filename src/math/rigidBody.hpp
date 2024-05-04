@@ -7,7 +7,10 @@
 #include "transform.hpp"
 #include <eigen3/Eigen/Dense>
 
+#define PI 3.14159265359
+
 namespace math {
+
 
 
     bool NearZero(const double val) {
