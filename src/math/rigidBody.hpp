@@ -85,6 +85,36 @@ namespace math {
         return ad_ret;
     }
 
+    Eigen::Matrix3d RodriguesFormula(const Eigen::Matrix3d so3, double theta){
+        Eigen::Matrix3d result;
+        Eigen::Matrix3d eye = Eigen::Matrix3d::Identity();
+        result = eye + std::sin(theta) * so3  + (1-std::cos(theta)) * so3*so3;
+        return result;
+    }
+
+    Eigen::Matrix3d GFormula(const Eigen::Matrix3d so3, double theta){
+        Eigen::Matrix3d result;
+        Eigen::Matrix3d eye = Eigen::Matrix3d::Identity();
+        result = eye * theta + (1 - std::cos(theta)) * so3 + (theta - std::sin(theta)) * so3 *so3;
+        return result;
+    }
+
+    Transform ExpTransA(const Eigen::Matrix3d so3,Eigen::Vector3d v, double theta){
+        Transform result;
+        result.clear();
+        Eigen::Matrix3d R = RodriguesFormula(so3, theta);
+        Eigen::Matrix3d G = GFormula(so3, theta);
+        // Test needed
+        Eigen::Vector3d gv = G * v;
+        Eigen::Vector4d temp = {0,0,0,1};
+
+        result.t.topLeftCorner<3,3>() = R;
+        result.t.topRightCorner<3,1>() = gv;
+        result.t.bottomLeftCorner<4,1>() = temp;
+
+        return result;
+    }
+
 
 
 

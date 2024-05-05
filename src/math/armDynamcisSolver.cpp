@@ -7,7 +7,7 @@ namespace math{
     namespace armDynamics{
         armDynamicsSolver::armDynamicsSolver() {
             dof_ = 6;
-            inputJS_.resize(3);
+            inputJS_.resize(dof_+1);
             inputError_.resize(3);
             solution_.resize(dof_);
             massMatrix_.resize(dof_,dof_);
@@ -19,6 +19,19 @@ namespace math{
             spatialInertialMatrix_.resize(6*dof_,6*dof_);
             screwAxisList_.resize(dof_);
             screwAxisMatrix_.resize(6*dof_,6*dof_);
+            // Last Transform for EE
+            transformList_.resize(dof_ +1 );
+            // Base Frame to 6th link Frame
+            comList_.resize(dof_+1);
+            Transform transInit;
+            transInit.clear();
+
+            for(uint8_t index = 0; index < dof_ ; index++){
+                transformList_[index] = transInit;
+            }
+            for(uint8_t index = 0; index < dof_ ; index++){
+                comList_[index] = transInit;
+            }
 
 
 
@@ -50,11 +63,37 @@ namespace math{
             spatialInertialMatrixList_ = matrixlist;
         }
 
+        void armDynamicsSolver::updateComList(std::vector<Transform> inputlist) {
+            for(uint8_t index =0; index  <dof_; index++){
+                comList_[index] = inputlist[index];
+            }
+        }
+
         void armDynamicsSolver::updateTransform() {
-            //t
+            for(uint8_t index = 0; index < dof_ + 1; index++){
+                if(index == 0){
+                    Transform dummy1;
+                    dummy1.clear();
+                    // Should be modifed == base to frame 1 (Link1 COM>
+                    transformList_[index] = comList_[0] * dummy1;
+                }else {
+                    Transform dummy2;
+                    dummy2.clear();
+                    //TransformList[1] = T12
+                    // Screw axis should start from 00
+                    Eigen::Matrix3d tempSo3 = VecToso3(screwAxisList_[index].head<3>());
+                    Eigen::Vector3d tempVec = screwAxisList_[index].segment<3>(3);
+                    //Input JS should start from 0
+                    transformList_[index] = inv(comList_[index]) * comList_[index + 1] * ExpTransA(tempSo3,tempVec, inputJS_[index][0]);
+
+                }
+
+            }
 
 
         }
+
+
         void armDynamicsSolver::calculateMassMatrix() {
             Eigen::MatrixXd inverseScrewMatrix = screwAxisMatrix_.inverse();
             Eigen::MatrixXd inverseLMatrix = lMatrix_.inverse();
@@ -67,6 +106,7 @@ namespace math{
 
         void armDynamicsSolver::calculateLMatrix() {
             //insert identity matrix diagonally <6,6>
+
         }
 
 

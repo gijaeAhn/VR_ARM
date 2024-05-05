@@ -75,7 +75,7 @@ TransA2 = M1*M2*expTransA2;
 
 
 %Joint3
-
+        
 
 omegaA3 = [0, -A3(3), A3(2);
            A3(3), 0 , -A3(1);

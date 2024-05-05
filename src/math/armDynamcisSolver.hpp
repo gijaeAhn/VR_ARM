@@ -8,12 +8,13 @@
 #include "Solver.hpp"
 #include "transform.hpp"
 #include "eigen3/Eigen/Dense"
+#include "rigidBody.hpp"
 
 
 namespace math {
     namespace armDynamics{
 
-        using jointState = Eigen::VectorXd;
+        using jointState = std::vector<Eigen::VectorXd>;
         using torqueList = Eigen::VectorXd;
         using spatialInertialMatrix = Eigen::MatrixXd;
 
@@ -35,6 +36,7 @@ namespace math {
             void getSpatialInertialMatrix(Eigen::MatrixXd sim, uint8_t index);
             void getSpatialInertialMatrix(std::vector<Eigen::MatrixXd> matrixlist);
 
+            void updateComList(std::vector<Transform> inputlist);
             void updateTransform();
 
             void calculateMassMatrix();
@@ -62,8 +64,17 @@ namespace math {
             std::vector<Eigen::VectorXd> screwAxisList_;
             Eigen::MatrixXd screwAxisMatrix_;
 
-            std::vector<Eigen::Matrix4d> comList_;
+            std::vector<Transform> comList_;
             std::vector<Transform> transformList_;
+
+
+            double shoulderHeight;
+            double upperArmLength;
+            double lowerArmLength;
+            double wrist1x;
+            double wrist1z;
+            double wrist2x;
+            double wrist2z;
 
 
 
