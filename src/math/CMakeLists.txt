@@ -15,3 +15,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(Eigen3 REQUIRED)
 
+add_library(math armDynamcisSolver.cpp
+                 armKinematicsSolver.cpp
+                 rigidBody.hpp
+                 Solver.hpp
+                 transfrom.cpp)
+
+target_link_libraries(math Eigen3::Eigen)

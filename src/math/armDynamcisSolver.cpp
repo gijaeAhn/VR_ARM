@@ -21,6 +21,12 @@ namespace math{
             screwAxisMatrix_.resize(6*dof_,6*dof_);
             // Last Transform for EE
             transformList_.resize(dof_ +1 );
+            // For subDiagonal Transform Matrix
+            relativeTransList_.resize(dof_-1);
+            for(uint8_t index =0 ; index < dof_; index++){
+                relativeTransList_[index].resize(dof_-1-index);
+            }
+
             // Base Frame to 6th link Frame
             comList_.resize(dof_+1);
             Transform transInit;
@@ -32,6 +38,7 @@ namespace math{
             for(uint8_t index = 0; index < dof_ ; index++){
                 comList_[index] = transInit;
             }
+
 
 
 
@@ -59,23 +66,20 @@ namespace math{
             spatialInertialMatrixList_[index] = sim;
         }
 
-        void armDynamicsSolver::getSpatialInertialMatrix(std::vector<Eigen::MatrixXd> matrixlist){
-            spatialInertialMatrixList_ = matrixlist;
+        void armDynamicsSolver::getSpatialInertialMatrix(std::vector<Eigen::MatrixXd> matrixList){
+            spatialInertialMatrixList_ = matrixList;
         }
 
-        void armDynamicsSolver::updateComList(std::vector<Transform> inputlist) {
+        void armDynamicsSolver::updateComList(std::vector<Transform> inputList) {
             for(uint8_t index =0; index  <dof_; index++){
-                comList_[index] = inputlist[index];
+                comList_[index] = inputList[index];
             }
         }
 
         void armDynamicsSolver::updateTransform() {
             for(uint8_t index = 0; index < dof_ + 1; index++){
                 if(index == 0){
-                    Transform dummy1;
-                    dummy1.clear();
-                    // Should be modifed == base to frame 1 (Link1 COM>
-                    transformList_[index] = comList_[0] * dummy1;
+                    continue;
                 }else {
                     Transform dummy2;
                     dummy2.clear();
@@ -83,13 +87,28 @@ namespace math{
                     // Screw axis should start from 00
                     Eigen::Matrix3d tempSo3 = VecToso3(screwAxisList_[index].head<3>());
                     Eigen::Vector3d tempVec = screwAxisList_[index].segment<3>(3);
-                    //Input JS should start from 0
-                    transformList_[index] = inv(comList_[index]) * comList_[index + 1] * ExpTransA(tempSo3,tempVec, inputJS_[index][0]);
+                    //Input JS should start from joint0 which is 0
+                    //To match the index
+                    //If index = 6 we are calculating T6EE
+                    transformList_[index] = inv(comList_[index]) * comList_[index + 1] * ExpTransA(tempSo3, tempVec, inputJS_[index][0]);
+                }
+            }
 
+
+            // WIP
+            //Mulitply from Matrix i to Matrix j
+            for(uint8_t i = 0; i < relativeTransList_.size(); i++){
+                for(uint8_t j = i; j < relativeTransList_[i].size(); j++){
+                    Transform dummy;
+                    dummy.clear();
+                    //Range transform 01 ~ 6EE
+                    for(uint8_t k = i +1; k < j + 2; k++){
+                        dummy = dummy * transformList_[k];
+                    }
+                    relativeTransList_[i][j] = dummy;
                 }
 
             }
-
 
         }
 

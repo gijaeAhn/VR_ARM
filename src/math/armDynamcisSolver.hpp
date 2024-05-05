@@ -7,7 +7,7 @@
 
 #include "Solver.hpp"
 #include "transform.hpp"
-#include "eigen3/Eigen/Dense"
+#include "Eigen/Dense"
 #include "rigidBody.hpp"
 
 
@@ -66,6 +66,7 @@ namespace math {
 
             std::vector<Transform> comList_;
             std::vector<Transform> transformList_;
+            std::vector<std::vector<Transform>> relativeTransList_;
 
 
             double shoulderHeight;

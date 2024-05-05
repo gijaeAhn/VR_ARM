@@ -4,6 +4,6 @@
         "conan": {}
     },
     "include": [
-        "/home/gj/Desktop/VR_ARM/build/Release/generators/CMakePresets.json"
+        "/home/sj/Desktop/VR_ARM/build/Release/generators/CMakePresets.json"
     ]
 }
