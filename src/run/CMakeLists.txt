@@ -13,33 +13,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(ZeroMQ REQUIRED)
+find_package(Threads REQUIRED)
 
 
-# find_package(Threads REQUIRED)
-# find_package(Eigen3)
-# set(EIGEN_PACKAGE EIGEN3)
-# if(NOT EIGEN3_FOUND)
-#   find_package(cmake_modules REQUIRED)
-#   find_package(Eigen REQUIRED)
-#   set(EIGEN3_INCLUDE_DIRS ${EIGEN_INCLUDE_DIRS})
-#   set(EIGEN3_LIBRARIES ${EIGEN_LIBRARIES})
-#   set(EIGEN_PACKAGE Eigen)
-# endif()
-
-# add_library(robot SHARED ${SRC_FILES}
-#         include/robot_IK.h
-#         include/robot_COMMON.h
-# )
-
-
-
-# target_compile_options(robot PRIVATE -Wall -Werror)
 
 
 add_executable(rmd_run src/rmd_run.cpp)
 add_executable(motor_run src/motor_run.cpp)
-add_executable(dyna_run src/dynamixel_run.cpp
-        ../math/transform.hpp)
+add_executable(dyna_run src/dynamixel_run.cpp)
 
 target_include_directories(rmd_run PRIVATE    ${ROOT_DIRECTORY})
 target_include_directories(motor_run PRIVATE    ${ROOT_DIRECTORY})
