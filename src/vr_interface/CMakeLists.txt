@@ -14,3 +14,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(ZeroMQ REQUIRED)
 find_package(Threads REQUIRED)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+
+
+
+add_executable(vr_interface ControllerListener.cpp)
+ament_target_dependencies(vr_interface rclcpp
+                                       std_msgs
+                                       geometry_msgs
+                                       tf2
+                                       tf2_ros )
+target_link_libraries(vr_interface)
+
