@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     std::array<float,RMD_MOTOR_SIZE> previousShaft ;
     std::array<float,RMD_MOTOR_SIZE> shaftChange  ;
     std::array<float,RMD_MOTOR_SIZE> pidBuffer;
-    std::array<float,RMD_MOTOR_SIZE> gravBuffe;
+    std::array<float,RMD_MOTOR_SIZE> gravBuffer;
     std::array<float,RMD_MOTOR_SIZE> sumBuffer;
     std::array<float,RMD_MOTOR_SIZE> angBuffer;
     std::int16_t sendTorque = 0;
