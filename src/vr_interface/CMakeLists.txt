@@ -22,11 +22,13 @@ find_package(tf2_ros REQUIRED)
 
 
 
-add_executable(vr_interface ControllerListener.cpp)
+add_library(vr_interface ControllerListener.cpp)
 ament_target_dependencies(vr_interface rclcpp
                                        std_msgs
                                        geometry_msgs
                                        tf2
-                                       tf2_ros )
-target_link_libraries(vr_interface)
+                                       tf2_ros
+                                        ZeroMQ )
+
+target_include_directories(vr_interface PUBLIC ${ROOT_DIRECTORY})
 

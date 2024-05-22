@@ -7,7 +7,7 @@
 
 #include "Solver.hpp"
 #include "transform.hpp"
-#include "eigen3/Eigen/Dense"
+#include <Eigen/Dense>
 
 #include <math.h>
 #include "rigidBody.hpp"
@@ -16,8 +16,9 @@ namespace math {
     namespace armKinematics {
 
         using jointList = Eigen::VectorXd;
+        using paramList = std::vector<Eigen::VectorXd>;
 
-        class armKinematicsSolver : public Solver<Transform, jointList> {
+        class armKinematicsSolver : public Solver<Transform, jointList, paramList> {
 
         public:
 

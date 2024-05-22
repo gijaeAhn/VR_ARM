@@ -78,15 +78,19 @@ macro(remove_flag_from_file _target _file _flag)
     endif()
 endmacro()
 
-add_subdirectory(utilities)
-add_subdirectory(math)
-add_subdirectory(dependencies/dynamixel_sdk)
-add_subdirectory(dependencies/rmd_driver)
-add_subdirectory(ros_interface)
-add_subdirectory(vr_interface)
-add_subdirectory(robot)
-add_subdirectory(test)
-add_subdirectory(run)
+if(APPLE)
+    # Add subdirectories specific to macOS
+    add_subdirectory(dependencies/dynamixel_sdk)
+    add_subdirectory(vr_interface)
+else()
+    # Add subdirectories for Linux
+    add_subdirectory(dependencies/dynamixel_sdk)
+    add_subdirectory(dependencies/rmd_driver)
+    add_subdirectory(vr_interface)
+    add_subdirectory(robot)
+    add_subdirectory(test)
+    add_subdirectory(run)
+endif()
 
 
 

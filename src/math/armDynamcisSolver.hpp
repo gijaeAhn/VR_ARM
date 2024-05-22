@@ -7,7 +7,7 @@
 
 #include "Solver.hpp"
 #include "transform.hpp"
-#include "Eigen/Dense"
+#include <Ei
 #include "rigidBody.hpp"
 
 
@@ -17,8 +17,9 @@ namespace math {
         using jointState = std::vector<Eigen::VectorXd>;
         using torqueList = Eigen::VectorXd;
         using spatialInertialMatrix = Eigen::MatrixXd;
+        using paramList = std::vector<Eigen::VectorXd>;
 
-        class armDynamicsSolver : public Solver<jointState, Eigen::VectorXd> {
+        class armDynamicsSolver : public Solver<jointState, Eigen::VectorXd, paramList> {
 
         public:
 

@@ -7,7 +7,7 @@
 
 namespace math {
 
-    template<typename input ,typename solution>
+    template<typename input ,typename solution,typename param>
     class Solver {
 
     public:
@@ -17,7 +17,6 @@ namespace math {
         virtual void addParam(param &&paramInput);
         virtual void clearParam();
 
-        [[nodiscard]]
         virtual void solve();
         virtual void apply(solution &cp);
         virtual void getInput(input&& in);
