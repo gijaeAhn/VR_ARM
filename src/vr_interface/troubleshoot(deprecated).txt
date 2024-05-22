@@ -1,8 +1,0 @@
-1. ALVR 설치 시 여러가지 문제  (Rust cargo 및 의존성 문제)
-	- CUDA 설치 시 민성맨 Slack 참고 ( 심볼릭 링크 문제)
-	- VAAPI 설치시 문제
-	- Libva 올바르게 설치 (의존성 문제)   
-		- X11 관련 추가 설치 libx11-xcb-dev libxcb-dri3-dev
-		- 
-	- drm-lease-shim.cpp:70:35: error: ‘std::filesystem’ has not been declared
-		- https://github.com/alvr-org/ALVR/issues/2001 같은 이슈
