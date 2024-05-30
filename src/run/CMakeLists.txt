@@ -15,6 +15,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(ZeroMQ REQUIRED)
 find_package(Threads REQUIRED)
 
+include_directories(${ROOT_DIRECOTORY})
 
 
 
@@ -22,9 +23,10 @@ add_executable(rmd_run src/rmd_run.cpp)
 add_executable(motor_run src/motor_run.cpp)
 add_executable(dyna_run src/dynamixel_run.cpp)
 
-target_include_directories(rmd_run PRIVATE    ${ROOT_DIRECTORY})
-target_include_directories(motor_run PRIVATE    ${ROOT_DIRECTORY})
-target_include_directories(dyna_run PRIVATE ${ROOT_DIRECTORY})
+target_compile_features(rmd_run PRIVATE cxx_std_17)
+target_compile_features(motor_run PRIVATE cxx_std_17)
+target_compile_features(dyna_run PRIVATE cxx_std_17)
+
 
 target_link_libraries(rmd_run
                       rmd_driver
@@ -40,9 +42,7 @@ target_link_libraries(dyna_run
                       dynamixel_sdk
                       libzmq-static)   
 
-target_compile_features(rmd_run PRIVATE cxx_std_17)
-target_compile_features(motor_run PRIVATE cxx_std_17)
-target_compile_features(dyna_run PRIVATE cxx_std_17)
+
 
 apply_global_cxx_flags_to_all_targets()
 remove_flag_from_file(dyna_run src/dynamixel_run.cpp -Werror)

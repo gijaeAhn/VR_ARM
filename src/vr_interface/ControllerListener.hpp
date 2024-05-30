@@ -12,10 +12,11 @@
 #include "tf2/exceptions.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
+#include "utilities/include/address.hpp"
 
 #ifdef __APPLE__
 #include "/opt/homebrew/Caskroom/miniforge/base/envs/ros_env/include/zmq.hpp"
-#else
+#ifdef __linux__
 #include <zmq.hpp>
 #endif
 
@@ -36,7 +37,14 @@ private:
     std::unique_ptr<tf2_ros::Buffer> right_buffer_{nullptr};
     std::string left_controller_frame;
     std::string right_controller_frame;
-    std::unique_ptr<zmq::socket_t> zmq_{nullptr};
+    std::unique_ptr<zmq::socket_t> zmq_left{nullptr};
+    std::unique_ptr<zmq::socket_t> zmq_right{nullptr};
+
+    zmq::message_t serializeTransform(const geometry_msgs::msg::TransformStamped& transformStamped);
+
+    std::string rightHandFrame = "rightHand";
+    std::string leftHandFrame = "leftHand";
+    std::string headsetFrame = "headset"
 };
 
 #endif // CONTROLLER_LISTENER_HPP

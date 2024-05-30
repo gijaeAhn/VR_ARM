@@ -22,12 +22,80 @@ ControllerListener::ControllerListener()
     right_controller_listener_ = std::make_shared<tf2_ros::TransformListener>(*right_buffer_);
 
     zmq::context_t context(1);
-    zmq_ = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
+    zmq_left = std::make_unique<zmq::socket_t>(context, ZMQ_PUB);
+    zmq_right = std::make_unique<zmq::socket_t>(context,ZMQ_PUB);
+
+    std::stringstream rhAddress;
+    std::stringstream lhAddress;
+
+    rhAddress << "tcp://*" << ":" << LEFT_HAND_ADDR;
+    lhAddress << "tcp://*" << ":" << RIGHT_HAND_ADDRR;
+    zmq_right->bind(rhAddress.str());
+    zmq_left->bind(lhAddress.str());
 
     timer_ = this->create_wall_timer(1s, std::bind(&ControllerListener::on_timer, this));
+
 }
 
 void ControllerListener::on_timer()
 {
+    geometry_msgs::msg::TransformStamped left_temp;
+    geometry_msgs::msg::TransformStamped right_temp;
+    zmq::message_t left_message;
+    zmq::message_t right_message;
+    zmq::send_result_t  left_send_result;
+    zmq::send_result_t right_send_result;
     // Timer callback implementation
+    try {
+        left_temp =
+                left_buffer_->lookupTransform(headsetFrame,
+                                              leftHandFrame,
+                                              tf2::TimePointZero);
+        left_message = serializeTransform(left_temp);
+        left_send_result = zmq_left->send(left_message,zmq::send_flags::none);
+    }catch(const tf2::TransformException & ex){
+        RCLCPP_INFO(
+                this->get_logger(), "Could not transform %s to %s: %s",
+                headsetFrame.c_str(), leftHandFrame.c_str(), ex.what());
+        return;
+    }
+    try {
+        right_temp =
+                right_buffer_->lookupTransform(headsetFrame,
+                                              rightHandFrame,
+                                              tf2::TimePointZero);
+        right_message = serializeTransform(right_temp);
+        right_send_result = zmq_right->send(right_message,zmq::send_flags::none);
+    }catch(const tf2::TransformException & ex){
+        RCLCPP_INFO(
+                this->get_logger(), "Could not transform %s to %s: %s",
+                headsetFrame.c_str(), rightHandFrame.c_str(), ex.what());
+        return;
+    }
+
+    if(left_send_result && right_send_result){
+        RCLCPP_INFO(this->get_logger(), "Suceed to send Message");
+    }
+}
+
+zmq::message_t serializeTransform(const geometry_msgs::msg::TransformStamped& transformStamped) {
+    // Extract rotation and translation from the transform
+    const auto& rotation = transformStamped.transform.rotation;
+    const auto& translation = transformStamped.transform.translation;
+
+    // Prepare a buffer with enough space for rotation (4 doubles: x, y, z, w) and translation (3 doubles: x, y, z)
+    size_t size = sizeof(double) * (4 + 3);
+    zmq::message_t message(size);
+
+    // Copy data to the buffer
+    double* buffer = reinterpret_cast<double*>(message.data());
+    buffer[0] = rotation.x;
+    buffer[1] = rotation.y;
+    buffer[2] = rotation.z;
+    buffer[3] = rotation.w;
+    buffer[4] = translation.x;
+    buffer[5] = translation.y;
+    buffer[6] = translation.z;
+
+    return message;
 }

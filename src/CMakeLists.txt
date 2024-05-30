@@ -80,10 +80,14 @@ endmacro()
 
 if(APPLE)
     # Add subdirectories specific to macOS
+    add_subdirectory(utilities)
+    add_subdirectory(math)
     add_subdirectory(dependencies/dynamixel_sdk)
     add_subdirectory(vr_interface)
 else()
     # Add subdirectories for Linux
+    add_subdirectory(utilities)
+    add_subdirectory(math)
     add_subdirectory(dependencies/dynamixel_sdk)
     add_subdirectory(dependencies/rmd_driver)
     add_subdirectory(vr_interface)

@@ -13,10 +13,9 @@
 #include <thread>
 #include <csignal>
 
-#define  MOTOR_ADDR                 5563
+#define  MOTOR_ADDR                 5554
 #define  RMD_MOTOR_ADDR             5555
 #define  DYNAMIXEL_MOTOR_ADDR       5556
-
 #define  RMD_DEBUG_ADDR             5557 
 #define  DYNAMIXEL_DEBUG_ADDR       5558
 
@@ -29,7 +28,10 @@
 #define  TEST_TORQUE_ADDR           5561
 
 
-#define  ROBOT_ANGLE_ADDR           5561
+#define  ROBOT_ANGLE_ADDR           5562
+
+#define  LEFT_HAND_ADDR             5563
+#define  RIGHT_HAND_ADDRR           5564
 
 #define  ROBOT_MOTOR_SIZE              4
 #define  MOTORINIT_TIME                0.1f
