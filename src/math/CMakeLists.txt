@@ -19,6 +19,7 @@ add_library(math armDynamcisSolver.cpp
                  armKinematicsSolver.cpp
                  rigidBody.hpp
                  Solver.hpp
-                 transfrom.cpp)
+                 transfrom.cpp
+                 inverse_dynamics_ref.cpp)
 
 target_link_libraries(math Eigen3::Eigen)

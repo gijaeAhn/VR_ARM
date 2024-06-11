@@ -47,10 +47,9 @@ void ControllerListener::on_timer()
     zmq::send_result_t right_send_result;
     // Timer callback implementation
     try {
-        left_temp =
-                left_buffer_->lookupTransform(headsetFrame,
-                                              leftHandFrame,
-                                              tf2::TimePointZero);
+        left_temp = left_buffer_->lookupTransform(headsetFrame,
+                                                 leftHandFrame,
+                                                        tf2::TimePointZero);
         left_message = serializeTransform(left_temp);
         left_send_result = zmq_left->send(left_message,zmq::send_flags::none);
     }catch(const tf2::TransformException & ex){
@@ -60,9 +59,8 @@ void ControllerListener::on_timer()
         return;
     }
     try {
-        right_temp =
-                right_buffer_->lookupTransform(headsetFrame,
-                                              rightHandFrame,
+        right_temp = right_buffer_->lookupTransform(headsetFrame,
+                                                  rightHandFrame,
                                               tf2::TimePointZero);
         right_message = serializeTransform(right_temp);
         right_send_result = zmq_right->send(right_message,zmq::send_flags::none);

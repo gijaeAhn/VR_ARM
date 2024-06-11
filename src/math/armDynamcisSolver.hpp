@@ -2,74 +2,49 @@
 // Created by gj on 4/29/24.
 //
 
-#ifndef VR_ARM_ARMDYNAMCISSOLVER_HPP
-#define VR_ARM_ARMDYNAMCISSOLVER_HPP
+#ifndef VR_ARM_ARMDYNAMICSSOLVER_HPP
+#define VR_ARM_ARMDYNAMICSSOLVER_HPP
 
 #include "Solver.hpp"
 #include "transform.hpp"
-#include <Ei
 #include "rigidBody.hpp"
+#include <Eigen/Dense>
+#include <vector>
 
 
 namespace math {
-    namespace armDynamics{
+    namespace armDynamics {
 
-        using jointState = std::vector<Eigen::VectorXd>;
-        using torqueList = Eigen::VectorXd;
-        using spatialInertialMatrix = Eigen::MatrixXd;
-        using paramList = std::vector<Eigen::VectorXd>;
+        using namespace std;
+        using namespace Eigen;
 
-        class armDynamicsSolver : public Solver<jointState, Eigen::VectorXd, paramList> {
+        // JointState => thetalist, thetaDotlist, thetaDoubleDotlist
+        // torqueList
+        using torqueList = VectorXd;
+
+        class armDynamicsSolver : public Solver<vector<JointState>, torqueList, vector<LinkParam>> {
 
         public:
 
             armDynamicsSolver();
             ~armDynamicsSolver();
 
-            void solve();
-            void apply(torqueList& cp);
-
-
-            void getInput(jointState&& inputJS);
-            void getError(Eigen::VectorXd error);
-            void getScrewAxis(Eigen::VectorXd screwAxis, uint8_t index);
-            void getScrewAxis(std::vector<Eigen::VectorXd> sal);
-            void getSpatialInertialMatrix(Eigen::MatrixXd sim, uint8_t index);
-            void getSpatialInertialMatrix(std::vector<Eigen::MatrixXd> matrixlist);
-
-            void updateComList(std::vector<Transform> inputlist);
-            void updateTransform();
-
-            void calculateMassMatrix();
-            void calculateLMatrix();
-            void calculateCoriolis();
-            void calculateGravity();
-
-
+            void solve() override;
+            void getDhParam(const vector<DHParam>& inputDhList);
+            void getLinkParam(const vector<LinkParam>& inputLinkParam);
+            void getJointState(const vector<JointState>& inputJointState);
 
         private:
-            uint8_t dof_;
-            jointState inputJS_;
-            Eigen::VectorXd inputError_;
-            torqueList solution_;
-            Eigen::MatrixXd massMatrix_;
+
+            //* Variables
+            vector<JointState> inputJointState_;
+            vector<LinkParam> linkParams_;
+            vector<DHParam> dhParams_;
+            vector<VectorXd> A_;
+            vector<double> solutionTorque_;
 
 
-            Eigen::MatrixXd lMatrix_;
-            Eigen::VectorXd coriolis_;
-            Eigen::VectorXd gravityComp_;
-
-            std::vector<Eigen::MatrixXd> spatialInertialMatrixList_;
-            spatialInertialMatrix spatialInertialMatrix_;
-
-            std::vector<Eigen::VectorXd> screwAxisList_;
-            Eigen::MatrixXd screwAxisMatrix_;
-
-            std::vector<Transform> comList_;
-            std::vector<Transform> transformList_;
-            std::vector<std::vector<Transform>> relativeTransList_;
-
-
+            uint8_t dof_= 6;
             double shoulderHeight;
             double upperArmLength;
             double lowerArmLength;
@@ -77,12 +52,12 @@ namespace math {
             double wrist1z;
             double wrist2x;
             double wrist2z;
+            //*//
 
-
-
+            //* Functions
+            void calculateTorques();
         };
-}
+    }
 }
 
-
-#endif //VR_ARM_ARMDYNAMCISSOLVER_HPP
+#endif //VR_ARM_ARMDYNAMICSSOLVER_HPP

@@ -5,7 +5,7 @@
 #ifndef TRANSFORM_HPP
 #define TRANSFORM_HPP
 
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include <stdio.h>
 #include <array>
 #include <math.h>

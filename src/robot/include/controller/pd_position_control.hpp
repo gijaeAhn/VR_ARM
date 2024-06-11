@@ -1,8 +1,0 @@
-//
-// Created by gj on 24. 3. 5.
-//
-
-#ifndef VR_ARM_PD_POSITION_CONTROL_HPP
-#define VR_ARM_PD_POSITION_CONTROL_HPP
-
-#endif //VR_ARM_PD_POSITION_CONTROL_HPP

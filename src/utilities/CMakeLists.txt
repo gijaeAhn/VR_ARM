@@ -14,7 +14,7 @@ add_library(utilities SHARED
             include/parser.hpp
             include/address.hpp
             include/timer.hpp
-            src/temp.cpp
+            src/dummy.cpp
 )
 
 target_compile_features(utilities PRIVATE cxx_std_17)

@@ -5,11 +5,34 @@
 #ifndef VR_ARM_RIGIDBODY_HPP
 #define VR_ARM_RIGIDBODY_HPP
 #include "transform.hpp"
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 #define PI 3.14159265359
 
 namespace math {
+
+    //* Variables
+
+    struct DHParam {
+        double alpha, a, d, theta;
+    };
+
+    struct LinkParam {
+        double mass;
+        Eigen::Vector3d centerOfMass;
+        Eigen::Matrix3d inertiaTensor;
+    };
+
+    struct JointState {
+        double positionAngle;
+        double velocityAngle;
+        double accelerationAngle;
+    };
+
+    Eigen::Vector3d gravity(0, 0, -9.81);
+
+
+
 
 
 
@@ -47,9 +70,9 @@ namespace math {
         return result;
     }
 
-    Eigen::Vector4d AxisAng3(const Eigen::Vector3d& expc3) {
+    Eigen::Vector4d AxisAng3(const Eigen::Vector3d& exp3) {
         Eigen::Vector4d v_ret;
-        v_ret << Normalize(expc3), expc3.norm();
+        v_ret << Normalize(exp3), exp3.norm();
         return v_ret;
     }
 
@@ -99,21 +122,47 @@ namespace math {
         return result;
     }
 
-    Transform ExpTransA(const Eigen::Matrix3d so3,Eigen::Vector3d v, double theta){
+    Transform ExpTransA(const Eigen::VectorXd& screw, double theta) {
         Transform result;
         result.clear();
+
+        // Extract parts of the screw using segment. Indices and lengths need to be correct.
+        Eigen::Vector3d direction = screw.segment<3>(0);  // Vector from index 0 with length 3
+        Eigen::Vector3d velocity = screw.segment<3>(3);   // Vector from index 3 with length 3
+
+        Eigen::Matrix3d so3 = VecToso3(direction);
         Eigen::Matrix3d R = RodriguesFormula(so3, theta);
         Eigen::Matrix3d G = GFormula(so3, theta);
-        // Test needed
-        Eigen::Vector3d gv = G * v;
-        Eigen::Vector4d temp = {0,0,0,1};
 
-        result.t.topLeftCorner<3,3>() = R;
-        result.t.topRightCorner<3,1>() = gv;
-        result.t.bottomLeftCorner<4,1>() = temp;
+        // Calculating the transformed velocity vector
+        Eigen::Vector3d gv = G * velocity;
+
+        // Filling in the transformation matrix 't'
+        result.t.topLeftCorner<3,3>() = R;                   // Top-left 3x3 block for rotation
+        result.t.topRightCorner<3,1>() = gv;                 // Top-right 3x1 block for translation
+        result.t.bottomLeftCorner<1,3>().setZero();          // Bottom-left 1x3 block (zero vector)
+        result.t(3,3) = 1.0;                                 // Bottom-right element (scalar 1)
 
         return result;
     }
+
+    Eigen::Matrix3d computeRotationMatrix(double alpha, double theta) {
+        Eigen::Matrix3d R;
+        R <<    std::cos(theta), -std::sin(theta) * std::cos(alpha),  std::sin(theta) * std::sin(alpha),
+                std::sin(theta),  std::cos(theta) * std::cos(alpha), -std::cos(theta) * std::sin(alpha),
+                              0,  std::sin(alpha)                  ,  std::cos(alpha);
+        return R;
+    }
+
+    Eigen::Matrix4d computeTransformationMatrix(const DHParam& dh, double theta) {
+        Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+        T.block<3, 3>(0, 0) = computeRotationMatrix(dh.alpha, theta);
+        T(0, 3) = dh.a;
+        T(1, 3) = dh.d * sin(dh.alpha);
+        T(2, 3) = dh.d * cos(dh.alpha);
+        return T;
+    }
+
 
 
 

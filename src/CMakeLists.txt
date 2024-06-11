@@ -84,6 +84,7 @@ if(APPLE)
     add_subdirectory(math)
     add_subdirectory(dependencies/dynamixel_sdk)
     add_subdirectory(vr_interface)
+    add_subdirectory(robot)
 else()
     # Add subdirectories for Linux
     add_subdirectory(utilities)
