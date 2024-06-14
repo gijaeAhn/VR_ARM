@@ -8,25 +8,80 @@
 #include <memory>
 #include <array>
 #include <Eigen/Dense>
+#include <thread>
 
 #include "fsm.hpp"
+#include "math/rigidBody.hpp"
 #include "math/armDynamcisSolver.hpp"
 #include "math/armKinematicsSolver.hpp"
+
+#include "utilities/include/debug.hpp"
+#include "utilities/include/param.hpp"
+#include "utilities/include/address.hpp"
+
+#ifdef __APPLE__
+#include "/opt/homebrew/Caskroom/miniforge/base/envs/ros_env/include/zmq.hpp"
+#ifdef __linux__
+#include <zmq.hpp>
+#endif
+
 
 
 namespace robot {
     class Robot {
     public:
-        Robot() = default;
+        Robot(std::vector<math::LinkParam> inputLinkParams,
+              std::vector<math::DHParam> inputDHParams,
+              std::vector<Eigen::VectorXd> inputA);
+        ~Robot() = default;
+
+        void run();
 
     private:
 
+        //* State Variables
+        //  States Should change according to VR Button Combinations
         fsm::FiniteStateMachine fsm_;
-        Eigen::VectorXd angle_;
-        Eigen::VectorXd EETransform_;
 
-        std::unique_ptr<math::armDynamics::armDynamicsSolver> dynamicsSolver_{nullptr};
-        std::unique_ptr<math::armKinematics::armKinematicsSolver> kinematicsSolver_{nullptr};
+        //* Sharing Variables
+        std::shared_ptr<Transform> EETransformPtr_;
+        std::shared_ptr<std::vector<math::JointState>> jointStatePtr_;
+        std::shared_ptr<Eigen::VectorXd> torquePtr_;
+
+        Transform EETransform_;
+        std::vector<math::JointState> jointState_;
+        Eigen::VectorXf torque_;
+
+
+        //For threads
+        void ikSolverThreadFunc();
+        void dynamicsSolverThreadFunc();
+        void zmqThreadFunc();
+
+        std::atomic<bool> running_;
+        std::thread ikSolverThread_;
+        std::thread dynamicsSolverThread_;
+        std::thread zmqThread_;
+
+
+        //1. Get Transformation function
+        //2.
+        math::armKinematics::armKinematicsSolver ikSolver_;
+        math::armDynamics::armDynamicsSolver dynamicsSolver_;
+
+        //ZMQ
+        zmq::socket_t EETransSubSocket_;
+        zmq::socket_t EETransPubSocket_;
+
+        // Debug Functions
+
+        //Internal Functions
+        void getJointStates();
+        Transform deserializeTransform(const zmq::message_t& message);
+
+        uint8_t dof_;
+
+
 
     };
 }

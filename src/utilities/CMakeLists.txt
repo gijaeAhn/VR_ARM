@@ -8,12 +8,15 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(utilities_INCLUDE_DIR "${CMAKE_SOURCE_DIR}")
 
 
 add_library(utilities SHARED
             include/parser.hpp
             include/address.hpp
             include/timer.hpp
+            include/debug.hpp
+            include/param.hpp
             src/dummy.cpp
 )
 

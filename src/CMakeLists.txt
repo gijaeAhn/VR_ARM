@@ -15,7 +15,7 @@ add_compile_options(-Wall -Wextra -Wshadow -Wconversion -Wpedantic -Werror)
 
 
 
-set(ROOT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 #SET FLAGS

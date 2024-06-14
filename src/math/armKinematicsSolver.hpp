@@ -7,27 +7,38 @@
 
 #include "Solver.hpp"
 #include "transform.hpp"
-#include <Eigen/Dense>
-
-#include <math.h>
 #include "rigidBody.hpp"
+
+#include <Eigen/Dense>
+#include <math.h>
+#include <chrono>
+#include <queue>
+
+#include "utilities/include/param.hpp"
+
+
 
 namespace math {
     namespace armKinematics {
 
         using jointList = Eigen::VectorXd;
-        using paramList = std::vector<Eigen::VectorXd>;
 
-        class armKinematicsSolver : public Solver<Transform, jointList, paramList> {
+
+        class armKinematicsSolver : public Solver<Transform, jointList, std::vector<DHParam>> {
 
         public:
 
-            armKinematicsSolver();
+            armKinematicsSolver(std::shared_ptr<Transform> inputTransformPtr,
+                                std::shared_ptr<std::vector<JointState>> inputJointStatePtr,
+                                std::vector<DHParam>& DHParam);
             ~armKinematicsSolver();
 
-            void solve();
-            void apply(jointList& cp);
-            void getInput(Transform&& inputTrans);
+            void solve() override;
+            void apply(jointList& cp) override;
+            void getInput() override;
+
+
+
 
         private:
             double shoulderHeight;
@@ -39,8 +50,28 @@ namespace math {
             double wrist2z;
 
 
+            //Sharing Variables
+            std::shared_ptr<Transform> inputTransformPtr_;
+            std::shared_ptr<std::vector<JointState>> jointStatePtr_;
+            std::mutex inputMutex_;
+            std::mutex jointStateMutex_;
+
             Transform inputT_;
             jointList solution_;
+            std::queue<std::vector<JointState>> jointStateQueue_;
+            std::vector<DHParam> dhParams_;
+
+            std::chrono::time_point<std::chrono::steady_clock> lastTime_;
+
+            //Fixed Internal Params
+            size_t dof_ = DOF;
+
+            //Internal Functions
+            void updateJointStates();
+
+
+
+
         };
     }
 }

@@ -8,31 +8,34 @@
 
 namespace math{
     namespace armKinematics{
-        armKinematicsSolver::armKinematicsSolver() {
+
+        armKinematicsSolver::armKinematicsSolver(std::shared_ptr<Transform> inputTransformPtr,
+                                                 std::shared_ptr<std::vector<JointState>> inputJointStatePtr,
+                                                 std::vector<DHParam>& DHParam) {
             //temporary value
-            shoulderHeight = 1;
-            upperArmLength = 1;
-            lowerArmLength = 1;
-            wrist1x = 1;
-            wrist1z = 1;
-            wrist2x = 1;
-            wrist2z = 1;
+//
+            //DH Param to lenghts
+            inputTransformPtr_ = inputTransformPtr;
+            jointStatePtr_ = inputJointStatePtr;
+            //DH Parma to arm lengths
+            dhParams_ = DHParam;
         }
+
         armKinematicsSolver::~armKinematicsSolver() {
 
         }
 
-
-        void armKinematicsSolver::getInput(Transform &&inputTrans) {
-            inputT_  = inputTrans;
+        void armKinematicsSolver::getInput() {
+            std::lock_guard<std::mutex> lock(inputMutex_);
+            inputT_  = *inputTransformPtr_;
         }
 
         void armKinematicsSolver::apply(math::armKinematics::jointList &cp) {
             cp = solution_;
         }
 
-
         void armKinematicsSolver::solve() {
+            std::lock_guard<std::mutex> lock(jointStateMutex_);
             Eigen::Matrix3d inputRotation =  inputT_.t.block<3,3>(0,0);
             Eigen::Vector3d inputTranslation = inputT_.t.block<3,1>(0,3);
 
@@ -75,14 +78,16 @@ namespace math{
 
             //Get joint3 and joint2
             // tempInput2 now T04
-            double tempLength = std::sqrt(std::pow(T14dummy(0,3),2) +
-                                             std::pow(T14dummy(1,3),2) +
-                                             std::pow(T14dummy(2,3),2));
-            double joint3 = 2*PI - std::acos((std::pow(upperArmLength,2) +
-                                                 std::pow(lowerArmLength,2) -
-                                                 std::pow(tempLength,2))    /
-                                                 (2*upperArmLength*lowerArmLength));
+            double tempLength   =         std::sqrt(std::pow(T14dummy(0,3),2) +
+                                                    std::pow(T14dummy(1,3),2) +
+                                                    std::pow(T14dummy(2,3),2));
+            double joint3       = 2*PI - std::acos((std::pow(upperArmLength,2) +
+                                                    std::pow(lowerArmLength,2) -
+                                                    std::pow(tempLength,2))    /
+                                                    (2*upperArmLength*lowerArmLength));
+
             double tempAngle1 = std::acos(std::sqrt(std::pow(T14dummy(0,3),2)+ std::pow(T14dummy(1,3),2))/tempLength);
+
             double tempAngle2 = std::acos((std::pow(tempLength,2)+ std::pow(upperArmLength,2)-std::pow(lowerArmLength,2))/
                                              (2 * tempLength * upperArmLength));
 
@@ -93,7 +98,51 @@ namespace math{
             solution_(3) = joint4;
             solution_(4) = joint5;
             solution_(5) = joint6;
+
+            updateJointStates();
         }
+
+        void armKinematicsSolver::updateJointStates() {
+            auto now = std::chrono::steady_clock::now();
+            auto temp = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTime_);
+            double dt = static_cast<double>(temp.count()) / 1000.0;
+            lastTime_ = now;
+            std::vector<JointState> tempJointStateList(dof_);
+
+            // Update jointStates_ with calculated velocities and accelerations
+            // Assuming the joint positions are already updated in jointStates_
+            if (!jointStateQueue_.empty()) {
+                const auto& previousJointStates = jointStateQueue_.front();
+
+                for (size_t i = 0; i < dof_; ++i) {
+                    tempJointStateList[i].positionAngle     = solution_[static_cast<long>(i)];
+                    tempJointStateList[i].velocityAngle     =(solution_[static_cast<long>(i)] - previousJointStates[i].positionAngle) / dt;
+                    tempJointStateList[i].accelerationAngle =(tempJointStateList[i].velocityAngle - previousJointStates[i].velocityAngle) / dt;
+                }
+
+                // Update the jointStateQueue_ with the new joint states
+                jointStateQueue_.push(tempJointStateList);
+
+                // Optional: Maintain a fixed size for the queue (e.g., keeping the last N states)
+                if (jointStateQueue_.size() > MAX_QUEUE_SIZE) {
+                    jointStateQueue_.pop();
+                }
+            } else {
+                // If the queue is empty, initialize it with the first set of joint states
+                for (size_t i = 0; i < dof_; ++i) {
+                    tempJointStateList[i].positionAngle = solution_[static_cast<long>(i)];
+                    tempJointStateList[i].velocityAngle = 0.0;
+                    tempJointStateList[i].accelerationAngle = 0.0;
+                }
+                jointStateQueue_.push(tempJointStateList);
+            }
+
+            *jointStatePtr_ = jointStateQueue_.front();
+        }
+
+
     }
+
+
 
 }

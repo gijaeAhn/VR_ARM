@@ -11,7 +11,13 @@
 
 namespace math {
 
-    //* Variables
+    //* Struct and Enums
+
+    enum DYNAMICS_SOLVE_TYPE{
+        GCOMP,
+        SIMPLE_PD,
+        COMPUTED,
+    };
 
     struct DHParam {
         double alpha, a, d, theta;
@@ -28,6 +34,10 @@ namespace math {
         double velocityAngle;
         double accelerationAngle;
     };
+
+    //*
+
+
 
     Eigen::Vector3d gravity(0, 0, -9.81);
 

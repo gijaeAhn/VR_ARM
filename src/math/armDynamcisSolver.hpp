@@ -15,47 +15,70 @@
 namespace math {
     namespace armDynamics {
 
-        using namespace std;
-        using namespace Eigen;
-
         // JointState => thetalist, thetaDotlist, thetaDoubleDotlist
         // torqueList
-        using torqueList = VectorXd;
 
-        class armDynamicsSolver : public Solver<vector<JointState>, torqueList, vector<LinkParam>> {
+        using torqueList = Eigen::VectorXd;
+
+    class armDynamicsSolver : public Solver<std::vector<JointState>, torqueList, std::vector<LinkParam>> {
 
         public:
 
-            armDynamicsSolver();
-            ~armDynamicsSolver();
+        armDynamicsSolver(std::vector<LinkParam> inputLinkParams,
+                          std::vector<DHParam> inputDHParams,
+                          std::vector<Eigen::VectorXd> inputA,
+                          std::shared_ptr<std::vector<JointState>> jointStatesPtr,
+                          std::shared_ptr<Eigen::VectorXd> torquesPtr);
 
+        armDynamicsSolver();
+
+        // Should Free Variables
+            ~armDynamicsSolver();
+            void setSolverType(DYNAMICS_SOLVE_TYPE solverType);
             void solve() override;
-            void getDhParam(const vector<DHParam>& inputDhList);
-            void getLinkParam(const vector<LinkParam>& inputLinkParam);
-            void getJointState(const vector<JointState>& inputJointState);
+            void getJointState();
+
 
         private:
 
-            //* Variables
-            vector<JointState> inputJointState_;
-            vector<LinkParam> linkParams_;
-            vector<DHParam> dhParams_;
-            vector<VectorXd> A_;
-            vector<double> solutionTorque_;
+            //* Fixed Variables
+            std::vector<LinkParam> linkParams_;
+            std::vector<DHParam> dhParams_;
+            std::vector<Eigen::VectorXd> A_;
+
+
+            //* Shared Variables
+            std::shared_ptr<std::vector<JointState>> jointStatesPtr_;
+            std::shared_ptr<Eigen::VectorXd> torquesPtr_;
+            std::vector<JointState> inputJointState_;
+            Eigen::VectorXd solutionTorque_;
+            std::mutex inputMutex_;
+            std::mutex torqueMutex_;
+
+            //* State Variables
+            DYNAMICS_SOLVE_TYPE solverType_;
+
 
 
             uint8_t dof_= 6;
-            double shoulderHeight;
-            double upperArmLength;
-            double lowerArmLength;
-            double wrist1x;
-            double wrist1z;
-            double wrist2x;
-            double wrist2z;
+//            double shoulderHeight;
+//            double upperArmLength;
+//            double lowerArmLength;
+//            double wrist1x;
+//            double wrist1z;
+//            double wrist2x;
+//            double wrist2z;
             //*//
 
             //* Functions
             void calculateTorques();
+            void calculateOnlyGComp();
+            void setTorques();
+
+
+
+
+
         };
     }
 }

@@ -14,18 +14,26 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 find_package(ZeroMQ REQUIRED)
 find_package(Threads REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(ament_cmake REQUIRED)
 
-include_directories(${ROOT_DIRECOTORY})
-
-
+include_directories(${ROOT_DIRECOTORY}
+                    ${rclcpp_INCLUDE_DIRS}
+                    ${std_msgs_INCLUDE_DIRS}
+                    ${ZeroMQ_INCLUDE_DIRS}
+                    utilities/include
+                    vr_interface)
 
 add_executable(rmd_run src/rmd_run.cpp)
 add_executable(motor_run src/motor_run.cpp)
 add_executable(dyna_run src/dynamixel_run.cpp)
+add_executable(vr_interface_run src/vr_interface_run.cpp)
 
 target_compile_features(rmd_run PRIVATE cxx_std_17)
 target_compile_features(motor_run PRIVATE cxx_std_17)
 target_compile_features(dyna_run PRIVATE cxx_std_17)
+target_compile_features(vr_interface_run PRIVATE cxx_std_17)
 
 
 target_link_libraries(rmd_run
@@ -40,9 +48,12 @@ target_link_libraries(motor_run
 target_link_libraries(dyna_run
                       utilities
                       dynamixel_sdk
-                      libzmq-static)   
+                      libzmq-static)
 
-
+target_link_libraries(vr_interface_run
+                      utilities
+                      libzmq-static
+                      vr_interface)
 
 apply_global_cxx_flags_to_all_targets()
 remove_flag_from_file(dyna_run src/dynamixel_run.cpp -Werror)

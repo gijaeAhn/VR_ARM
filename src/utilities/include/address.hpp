@@ -19,9 +19,6 @@
 #define  RMD_DEBUG_ADDR             5557 
 #define  DYNAMIXEL_DEBUG_ADDR       5558
 
-
-
-
 #define  RMD_ANGLE_ADDR             5559 
 #define  DYNAMIXEL_ANGLE_ADDR       5560
 
@@ -33,12 +30,10 @@
 #define  LEFT_HAND_ADDR             5563
 #define  RIGHT_HAND_ADDRR           5564
 
-#define  ROBOT_MOTOR_SIZE              4
-#define  MOTORINIT_TIME                0.1f
+#define  EETRANS_SUB_ADDR              5565
+#define  EETRANS_PUB_ADDR              5566
 
-#define  RMD_MOTOR_SIZE                2
 
-#define  DYNAMIXEL_MOTOR_SIZE          2
 
 
 

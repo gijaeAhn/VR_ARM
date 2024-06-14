@@ -19,7 +19,7 @@ namespace math {
 
         virtual void solve();
         virtual void apply(solution &cp);
-        virtual void getInput(input&& in);
+        virtual void getInput();
 
     private:
         param param_;

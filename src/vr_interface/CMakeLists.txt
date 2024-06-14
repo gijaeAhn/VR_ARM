@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23.0)
-project(run)
+project(vr_interface)
 
 option(PYTHON_BINDINGS "Building Python bindings" OFF)
 option(BUILD_TESTING "Build unit and integration tests" OFF)
@@ -22,13 +22,15 @@ find_package(tf2_ros REQUIRED)
 
 
 
+include_directories(${ROOT_DIR})
 add_library(vr_interface ControllerListener.cpp)
 ament_target_dependencies(vr_interface rclcpp
                                        std_msgs
                                        geometry_msgs
                                        tf2
                                        tf2_ros
-                                        ZeroMQ )
+                                       ZeroMQ )
 
-target_include_directories(vr_interface PUBLIC ${ROOT_DIRECTORY})
+
+
 

@@ -33,7 +33,8 @@ ControllerListener::ControllerListener()
     zmq_right->bind(rhAddress.str());
     zmq_left->bind(lhAddress.str());
 
-    timer_ = this->create_wall_timer(1s, std::bind(&ControllerListener::on_timer, this));
+    // Refactor : period
+    timer_ = this->create_wall_timer(5ms, std::bind(&ControllerListener::on_timer, this));
 
 }
 
@@ -72,7 +73,7 @@ void ControllerListener::on_timer()
     }
 
     if(left_send_result && right_send_result){
-        RCLCPP_INFO(this->get_logger(), "Suceed to send Message");
+        RCLCPP_INFO(this->get_logger(), "Succeed to send Message");
     }
 }
 
