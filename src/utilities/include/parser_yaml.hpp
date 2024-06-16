@@ -9,7 +9,7 @@
 #include "parser.hpp"
 
 #include <yaml-cpp/yaml.h>
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 
 
 namespace utilities::parser {
@@ -91,13 +91,11 @@ namespace utilities::parser {
         }
     }
 
-    std::optional<typename utilities::parser::Parser<param::ArmConfigParam>::outputDataBundle>
-    YamlParser::getData() {
+    std::optional<typename utilities::parser::Parser<param::ArmConfigParam>::outputDataBundle> YamlParser::getData() {
         if (data_.links.empty() && data_.joints.empty()) {
             return std::nullopt;
         } else {
-            return typename utilities::parser::Parser<param::ArmConfigParam>::outputDataBundle{data_,
-                                                                                               parser::GET_RESULT::GET_SUCCEED};
+            return typename utilities::parser::Parser<param::ArmConfigParam>::outputDataBundle{data_, utilities::parser::GET_SUCCEED};
         }
     }
 }

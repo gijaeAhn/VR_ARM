@@ -1,7 +1,6 @@
 //
 // Created by gj on 4/29/24.
 //
-
 #ifndef VR_ARM_ARMDYNAMICSSOLVER_HPP
 #define VR_ARM_ARMDYNAMICSSOLVER_HPP
 

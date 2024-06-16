@@ -32,8 +32,8 @@
 namespace robot {
     class Robot {
     public:
-        Robot(std::vector<math::LinkParam> inputLinkParams,
-              std::vector<math::DHParam> inputDHParams,
+        Robot(std::vector<param::LinkParam> inputLinkParams,
+              std::vector<param::DHParam> inputDHParams,
               std::vector<Eigen::VectorXd> inputA);
         ~Robot() = default;
 
@@ -47,11 +47,11 @@ namespace robot {
 
         //* Sharing Variables
         std::shared_ptr<Transform> EETransformPtr_;
-        std::shared_ptr<std::vector<math::JointState>> jointStatePtr_;
+        std::shared_ptr<std::vector<param::JointState>> jointStatePtr_;
         std::shared_ptr<Eigen::VectorXd> torquePtr_;
 
         Transform EETransform_;
-        std::vector<math::JointState> jointState_;
+        std::vector<param::JointState> jointState_;
         Eigen::VectorXf torque_;
 
 

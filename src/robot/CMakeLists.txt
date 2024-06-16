@@ -6,7 +6,7 @@ option(BUILD_TESTING "Build unit and integration tests" OFF)
 option(SETUP_TEST_IFNAME "Set-up the test VCAN interface automatically" OFF)
 
 if(NOT UNIX)
-    message(FATAL_ERROR "Currently this driver only supports Linux!")
+    message(FATAL_ERROR "Supporting only Linux!")
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -31,6 +31,3 @@ target_link_libraries(robot Eigen3::Eigen
                             libzmq-static
                             pthreads)
 
-target_include_directories(robot PUBLIC ${math_INCLUDE_DIR}
-                                        ${utilities_INCLUDE_DIR}
-                                        )
