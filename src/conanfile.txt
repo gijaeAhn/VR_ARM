@@ -1,6 +1,7 @@
 [requires]
 zeromq/4.3.5
 eigen/3.4.0
+yaml-cpp/0.8.0
 [generators]
 CMakeDeps
 CMakeToolchain

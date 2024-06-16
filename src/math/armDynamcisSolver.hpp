@@ -16,19 +16,27 @@
 namespace math {
     namespace armDynamics {
 
+        enum DYNAMICS_SOLVE_TYPE{
+            GCOMP,
+            SIMPLE_PD,
+            COMPUTED,
+        };
+
+        Eigen::Vector3d gravity(0, 0, -9.81);
+
         // JointState => thetalist, thetaDotlist, thetaDoubleDotlist
         // torqueList
 
         using torqueList = Eigen::VectorXd;
 
-    class armDynamicsSolver : public Solver<std::vector<JointState>, torqueList, std::vector<LinkParam>> {
+    class armDynamicsSolver : public Solver<std::vector<param::JointState>, torqueList, std::vector<param::LinkParam>> {
 
         public:
 
-        armDynamicsSolver(std::vector<LinkParam> inputLinkParams,
-                          std::vector<DHParam> inputDHParams,
+        armDynamicsSolver(std::vector<param::LinkParam> inputLinkParams,
+                          std::vector<param::DHParam> inputDHParams,
                           std::vector<Eigen::VectorXd> inputA,
-                          std::shared_ptr<std::vector<JointState>> jointStatesPtr,
+                          std::shared_ptr<std::vector<param::JointState>> jointStatesPtr,
                           std::shared_ptr<Eigen::VectorXd> torquesPtr);
 
         armDynamicsSolver();
@@ -44,15 +52,15 @@ namespace math {
         private:
 
             //* Fixed Variables
-            std::vector<LinkParam> linkParams_;
-            std::vector<DHParam> dhParams_;
+            std::vector<param::LinkParam> linkParams_;
+            std::vector<param::DHParam> dhParams_;
             std::vector<Eigen::VectorXd> A_;
 
 
             //* Shared Variables
-            std::shared_ptr<std::vector<JointState>> jointStatesPtr_;
+            std::shared_ptr<std::vector<param::JointState>> jointStatesPtr_;
             std::shared_ptr<Eigen::VectorXd> torquesPtr_;
-            std::vector<JointState> inputJointState_;
+            std::vector<param::JointState> inputJointState_;
             Eigen::VectorXd solutionTorque_;
 
             //* State Variables

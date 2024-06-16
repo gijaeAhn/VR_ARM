@@ -26,13 +26,13 @@ namespace math {
         using jointList = Eigen::VectorXd;
 
 
-        class armKinematicsSolver : public Solver<Transform, jointList, std::vector<DHParam>> {
+    class armKinematicsSolver : public Solver<Transform, jointList, std::vector<param::DHParam>> {
 
         public:
 
             armKinematicsSolver(std::shared_ptr<Transform> inputTransformPtr,
-                                std::shared_ptr<std::vector<JointState>> inputJointStatePtr,
-                                std::vector<DHParam>& DHParam);
+                                std::shared_ptr<std::vector<param::JointState>> inputJointStatePtr,
+                                std::vector<param::DHParam>& DHParam);
             ~armKinematicsSolver();
 
             void solve() override;
@@ -55,12 +55,12 @@ namespace math {
 
             //Sharing Variables
             std::shared_ptr<Transform> inputTransformPtr_;
-            std::shared_ptr<std::vector<JointState>> jointStatePtr_;
+            std::shared_ptr<std::vector<param::JointState>> jointStatePtr_;
 
             Transform inputT_;
             jointList solution_;
-            std::queue<std::vector<JointState>> jointStateQueue_;
-            std::vector<DHParam> dhParams_;
+            std::queue<std::vector<param::JointState>> jointStateQueue_;
+            std::vector<param::DHParam> dhParams_;
 
             std::chrono::time_point<std::chrono::steady_clock> lastTime_;
 

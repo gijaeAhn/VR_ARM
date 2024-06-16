@@ -1,0 +1,141 @@
+links:
+  Link_1:
+    mass: 0.0 kg
+    com:
+      x: 0.0 m
+      y: 0.0 m
+      z: 0.0 m
+    inertial:
+      Lxx: 0 kg*m2
+      Lxy: 0 kg*m2
+      Lxz: 0 kg*m2
+      Lyy: 0 kg*m2
+      Lyz: 0 kg*m2
+      Lzz: 0 kg*m2
+
+  Link_2:
+    mass: 0.858 kg
+    com:
+      x: 0.000365 m
+      y: -0.002314 m
+      z: 0.057083 m
+    inertial:
+      Lxx: 0.880165 kg*m2
+      Lxy: 0.002235 kg*m2
+      Lxz: 0.017229 kg*m2
+      Lyy: 1.332758 kg*m2
+      Lyz: 0.024725 kg*m2
+      Lzz: 0.787343 kg*m2
+
+  Link_3:
+    mass: 0.608 kg
+    com:
+      x: 0.0 m
+      y: -0.007099 m
+      z: 0.223496 m
+    inertial:
+      Lxx: 4.825845 kg*m2
+      Lxy: 0.030657 kg*m2
+      Lxz: 0.515293 kg*m2
+      Lyy: 4.819733 kg*m2
+      Lyz: 0 kg*m2
+      Lzz: 0.4594 kg*m2
+
+  Link_4:
+    mass: 0.32 kg
+    com:
+      x: -0.000051 m
+      y: 0.00637 m
+      z: 0.180477 m
+    inertial:
+      Lxx: 3.984381 kg*m2
+      Lxy: 0.000164 kg*m2
+      Lxz: 0.0014 kg*m2
+      Lyy: 3.929768 kg*m2
+      Lyz: -0.482062 kg*m2
+      Lzz: 0.146678 kg*m2
+
+  Link_5:
+    mass: 0.105 kg
+    com:
+      x: -0.057698 m
+      y: 0.000081 m
+      z: 0.045361 m
+    inertial:
+      Lxx: 0.053298 kg*m2
+      Lxy: 0.000049 kg*m2
+      Lxz: 0.021968 kg*m2
+      Lyy: 0.070894 kg*m2
+      Lyz: -0.000053 kg*m2
+      Lzz: 0.050052 kg*m2
+
+  Link_6:
+    mass: 0.09 kg
+    com:
+      x: 0.03192 m
+      y: 0.000094 m
+      z: 0.010185 m
+    inertial:
+      Lxx: 0.015111 kg*m2
+      Lxy: -0.000013 kg*m2
+      Lxz: -0.000936 kg*m2
+      Lyy: 0.027478 kg*m2
+      Lyz: -0.000003 kg*m2
+      Lzz: 0.024934 kg*m2
+
+joints:
+  Joint_0:
+    x: 0
+    y: 0
+    z: 0
+    vx : 0
+    vy : 0
+    vz : 0
+
+  Joint_1:
+    x: 0
+    y: 0
+    z: 1
+    vx : 0
+    vy : 0
+    vz : 0
+
+  Joint_2:
+    x: 0
+    y: 1
+    z: 0
+    vx : -0.105
+    vy : 0
+    vz : 0
+
+  Joint_3:
+    x: 0
+    y: 1
+    z: 0
+    vx : -0.365
+    vy : 0
+    vz : 0
+
+  Joint_4:
+    x: 0
+    y: 1
+    z: 0
+    vx : -0.645
+    vy : 0
+    vz : 0
+
+  Joint_5:
+    x: 1
+    y: 0
+    z: 0
+    vx : 0
+    vy : 0.685
+    vz : 0
+
+  Joint_6:
+    x: 0
+    y: 0
+    z: 1
+    vx : 0
+    vy : 0
+    vz : 0

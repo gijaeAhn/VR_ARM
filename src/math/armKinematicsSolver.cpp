@@ -10,8 +10,8 @@ namespace math{
     namespace armKinematics{
 
         armKinematicsSolver::armKinematicsSolver(std::shared_ptr<Transform> inputTransformPtr,
-                                                 std::shared_ptr<std::vector<JointState>> inputJointStatePtr,
-                                                 std::vector<DHParam>& DHParam) {
+                                                 std::shared_ptr<std::vector<param::JointState>> inputJointStatePtr,
+                                                 std::vector<param::DHParam>& DHParam) {
             //temporary value
 //
             //DH Param to lenghts

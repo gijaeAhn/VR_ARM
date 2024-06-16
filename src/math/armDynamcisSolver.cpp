@@ -8,10 +8,12 @@
 namespace math {
     namespace armDynamics {
 
-        armDynamicsSolver::armDynamicsSolver(std::vector<LinkParam> inputLinkParams,
-                                             std::vector<DHParam> inputDHParams,
+
+
+        armDynamicsSolver::armDynamicsSolver(std::vector<param::LinkParam> inputLinkParams,
+                                             std::vector<param::DHParam> inputDHParams,
                                              std::vector<Eigen::VectorXd> inputA,
-                                             std::shared_ptr<std::vector<JointState>> jointStatesPtr,
+                                             std::shared_ptr<std::vector<param::JointState>> jointStatesPtr,
                                              std::shared_ptr<Eigen::VectorXd> torquesPtr)
                 : linkParams_(std::move(inputLinkParams)),
                   dhParams_(std::move(inputDHParams)),

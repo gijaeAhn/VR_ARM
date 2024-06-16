@@ -4,46 +4,15 @@
 
 #ifndef VR_ARM_RIGIDBODY_HPP
 #define VR_ARM_RIGIDBODY_HPP
+
+
 #include "transform.hpp"
+#include "utilities/include/param.hpp"
 #include <Eigen/Dense>
 
 #define PI 3.14159265359
 
 namespace math {
-
-    //* Struct and Enums
-
-    enum DYNAMICS_SOLVE_TYPE{
-        GCOMP,
-        SIMPLE_PD,
-        COMPUTED,
-    };
-
-    struct DHParam {
-        double alpha, a, d, theta;
-    };
-
-    struct LinkParam {
-        double mass;
-        Eigen::Vector3d centerOfMass;
-        Eigen::Matrix3d inertiaTensor;
-    };
-
-    struct JointState {
-        double positionAngle;
-        double velocityAngle;
-        double accelerationAngle;
-    };
-
-    //*
-
-
-
-    Eigen::Vector3d gravity(0, 0, -9.81);
-
-
-
-
 
 
     bool NearZero(const double val) {
@@ -164,7 +133,7 @@ namespace math {
         return R;
     }
 
-    Eigen::Matrix4d computeTransformationMatrix(const DHParam& dh, double theta) {
+    Eigen::Matrix4d computeTransformationMatrix(const para::DHParam& dh, double theta) {
         Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
         T.block<3, 3>(0, 0) = computeRotationMatrix(dh.alpha, theta);
         T(0, 3) = dh.a;
@@ -172,11 +141,6 @@ namespace math {
         T(2, 3) = dh.d * cos(dh.alpha);
         return T;
     }
-
-
-
-
-
 }
 
 
