@@ -8,7 +8,7 @@
   },
   "configurePresets": [
     {
-      "name": "default",
+      "name": "apple",
       "description": "Use the release configuration with the Conan toolchain",
       "hidden": false,
       "binaryDir": "${sourceDir}/../build/bin",
@@ -17,6 +17,18 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/../build/Release/generators/conan_toolchain.cmake",
         "CMAKE_INSTALL_PREFIX" : "${sourceDir}/../build/"
+      }
+    },
+    {
+      "name": "linux",
+      "description": "Use the release configuration with the Conan toolchain",
+      "hidden": false,
+      "binaryDir": "$env{VR_ARM_DIR}/build/bin",
+      "generator": "Unix Makefiles",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VR_ARM_DIR}/build/Release/generators/conan_toolchain.cmake",
+        "CMAKE_INSTALL_PREFIX" : "$env{VR_ARM_DIR}/build/"
       }
     }
   ]

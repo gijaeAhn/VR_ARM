@@ -13,6 +13,8 @@
 #include <math.h>
 #include <chrono>
 #include <queue>
+#include <memory>
+
 
 #include "utilities/include/param.hpp"
 
@@ -36,6 +38,7 @@ namespace math {
             void solve() override;
             void apply(jointList& cp) override;
             void getInput() override;
+            void setJointState();
 
 
 
@@ -53,8 +56,6 @@ namespace math {
             //Sharing Variables
             std::shared_ptr<Transform> inputTransformPtr_;
             std::shared_ptr<std::vector<JointState>> jointStatePtr_;
-            std::mutex inputMutex_;
-            std::mutex jointStateMutex_;
 
             Transform inputT_;
             jointList solution_;

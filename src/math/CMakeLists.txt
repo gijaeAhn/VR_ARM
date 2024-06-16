@@ -22,8 +22,8 @@ add_library(math armDynamcisSolver.cpp
                  rigidBody.hpp
                  Solver.hpp
                  transfrom.cpp
-                 inverse_dynamics_ref.cpp)
+)
 
 target_link_libraries(math Eigen3::Eigen)
 
-target_include_directories(math PUBLIC ${ROOT_DIR})
+target_include_directories(math PUBLIC ${ROOT_DIRECTORY})

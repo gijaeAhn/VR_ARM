@@ -26,8 +26,11 @@ namespace math{
         }
 
         void armKinematicsSolver::getInput() {
-            std::lock_guard<std::mutex> lock(inputMutex_);
             inputT_  = *inputTransformPtr_;
+        }
+
+        void armKinematicsSolver::setJointState() {
+            *jointStatePtr_ = jointStateQueue_.front();
         }
 
         void armKinematicsSolver::apply(math::armKinematics::jointList &cp) {
@@ -35,8 +38,7 @@ namespace math{
         }
 
         void armKinematicsSolver::solve() {
-            std::lock_guard<std::mutex> lock(jointStateMutex_);
-            Eigen::Matrix3d inputRotation =  inputT_.t.block<3,3>(0,0);
+//            Eigen::Matrix3d inputRotation =  inputT_.t.block<3,3>(0,0);
             Eigen::Vector3d inputTranslation = inputT_.t.block<3,1>(0,3);
 
             //Frist get Joint1
@@ -137,7 +139,6 @@ namespace math{
                 jointStateQueue_.push(tempJointStateList);
             }
 
-            *jointStatePtr_ = jointStateQueue_.front();
         }
 
 

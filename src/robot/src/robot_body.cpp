@@ -36,12 +36,8 @@ namespace  robot{
         eeTransPub << "tcp://*" << EETRANS_PUB_ADDR;
         EETransSubSocket_.connect(eeTransSub.str());
         EETransSubSocket_.set(sockOptSub, "");
-        EETransPubSocket_.bind(eeTransPub.str());
-        EETransPubSocket_.set(sockOptPub,"");
-
-    }
-
-    Robot::~Robot() {
+        torquePubSocket_.bind(eeTransPub.str());
+        torquePubSocket_.set(sockOptPub,"");
 
     }
 
@@ -85,15 +81,18 @@ namespace  robot{
         while (running_) {
             auto threadFuncStart = std::chrono::steady_clock::now();
 
-            std::vector<math::JointState> tempJointStates;
-
-            if (EETransformPtr_) {
-                ikSolver_.getInput();
-                ikSolver_.solve();
-            } else {
-                //implement asynchronous debuggin UI
-                continue;
+            std::unique_lock<std::mutex> lock(jointStateMutex_);
+            {
+                if (EETransformPtr_) {
+                    ikSolver_.getInput();
+                    ikSolver_.solve();
+                    ikSolver_.setJointState();
+                } else {
+                    //implement asynchronous debuggin UI
+                    continue;
+                }
             }
+            lock.unlock();
 
             auto threadFuncEnd = std::chrono::steady_clock::now();
             auto threadActualDuration = std::chrono::duration_cast<std::chrono::milliseconds>(threadFuncEnd - threadFuncStart);
@@ -113,13 +112,18 @@ namespace  robot{
 
             auto threadFuncStart = std::chrono::steady_clock::now();
 
-            if(jointStatePtr_){
-                dynamicsSolver_.getJointState();
-                dynamicsSolver_.solve();
-            }else{
-                //implement debugging UI
-                continue;
+            std::unique_lock<std::mutex> lock(torqueMutex_);
+            {
+                if (jointStatePtr_) {
+                    dynamicsSolver_.getJointState();
+                    dynamicsSolver_.solve();
+                    dynamicsSolver_.setTorques();
+                }else{
+                    //implement debugging UI
+                    continue;
+                }
             }
+            lock.unlock();
 
             auto threadFuncEnd = std::chrono::steady_clock::now();
             auto threadActualDuration = std::chrono::duration_cast<std::chrono::milliseconds>(threadFuncEnd - threadFuncStart);
@@ -140,26 +144,38 @@ namespace  robot{
             //Recveing Part
             zmq::message_t eeTransSub_message(sizeof(float) * 7);
             zmq::recv_result_t recv_result = EETransSubSocket_.recv(eeTransSub_message, zmq::recv_flags::none);
+
             // add Checking code
             // 1. Use Quaternion characteristic
-            if(!(recv_result.has_value() && (recv_result.value() > 0))){
-                throw std::runtime_error("Failed to recv TF : Robot");
-            }else{
-                EETransform_ = deserializeTransform(eeTransSub_message);
+            // 2. Lock the EE Transform with mutex
+
+            std::unique_lock<std::mutex> lock1(eeTransformMutex_);
+            {
+                if (!(recv_result.has_value() && (recv_result.value() > 0))) {
+                    throw std::runtime_error("Failed to recv TF : Robot");
+                } else {
+                    EETransform_ = deserializeTransform(eeTransSub_message);
+                }
             }
+            lock1.unlock();
 
             // Publishing part
 
-            zmq::message_t eeTransPub_message(sizeof(float)*dof_);
-            auto tempMsgPtr = static_cast<float*>(eeTransPub_message.data());
+            zmq::message_t torquePub_message(sizeof(float)*dof_);
+            auto tempMsgPtr = static_cast<float*>(torquePub_message.data());
             // Should check
-            std::copy(tempMsgPtr,tempMsgPtr + dof_,torque_.data());
-            zmq::send_result_t send_result = EETransPubSocket_.send(eeTransPub_message, zmq::send_flags::none);
-            if(!(send_result.has_value() && (send_result.value() > 0))){
-                throw std::runtime_error("Failed to send Torque : Robot");
-            }else{
-                // Succeed
+
+            std::unique_lock<std::mutex> lock2(torqueMutex_);
+            {
+                std::copy(tempMsgPtr, tempMsgPtr + dof_, torque_.data());
+                zmq::send_result_t send_result = torquePubSocket_.send(torquePub_message, zmq::send_flags::none);
+                if (!(send_result.has_value() && (send_result.value() > 0))) {
+                    throw std::runtime_error("Failed to send Torque : Robot");
+                } else {
+                    // Succeed
+                }
             }
+            lock2.unlock();
 
             auto threadFuncEnd = std::chrono::steady_clock::now();
             auto threadActualDuration = std::chrono::duration_cast<std::chrono::milliseconds>(threadFuncEnd - threadFuncStart);

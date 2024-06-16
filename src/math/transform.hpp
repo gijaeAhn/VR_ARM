@@ -13,7 +13,8 @@
 class Transform {
 
 public:
-    Transform();;
+    Transform();
+    ~Transform();
     void clear();
 
     Transform& translate(double x=0, double y=0, double z=0);

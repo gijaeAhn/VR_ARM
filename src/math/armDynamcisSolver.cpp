@@ -25,7 +25,6 @@ namespace math {
         }
 
         void armDynamicsSolver::getJointState(){
-            std::lock_guard<std::mutex> lock(inputMutex_);
             inputJointState_ = *jointStatesPtr_;
         }
 
@@ -35,9 +34,6 @@ namespace math {
 
 
         void armDynamicsSolver::solve() {
-
-            std::lock_guard<std::mutex> lock(torqueMutex_);
-
             getJointState();
 
             switch (solverType_) {
@@ -68,7 +64,7 @@ namespace math {
             Eigen::VectorXd torques(dof_, 0);
 
             // Forward Recursion: Compute position, velocity, and acceleration
-            for (uint8_t index = 0; index < dof_; ++index) {
+            for (size_t index = 0; index < dof_; ++index) {
                 if (index == 0) {
 
                     T[index]    = computeTransformationMatrix(dhParams_[index], inputJointState_[index].positionAngle);
@@ -93,17 +89,17 @@ namespace math {
             }
 
             // Backward Recursion: Compute forces and torques
-            for (uint8_t index = dof_ - 1; index >= 0; --index) {
-                if (index == dof_ - 1) {
+            for (size_t index = dof_ - 1; index --> 0;) {
+                if (index == static_cast<size_t>(dof_-1)) {
                     F[index] = linkParams_[index].inertiaTensor * Vdot[index] -
                                ad(V[index]).transpose() * (linkParams_[index].inertiaTensor * V[index]);
                 }
                 else {
                     F[index] = Adjoint(T[index + 1].transpose()) * F[index + 1] +
                                linkParams_[index].inertiaTensor * Vdot[index] -
-                               ad(V[index]).transpose() * (linkParams_[index].inertiaTensor * V[index]);s
+                               ad(V[index]).transpose() * (linkParams_[index].inertiaTensor * V[index]);
                 }
-                torques[index] = F[index].transpose() * A_[index];
+                torques[static_cast<long>(index)] = F[index].transpose() * A_[index];
             }
             solutionTorque_ = torques;
         }
@@ -115,7 +111,7 @@ namespace math {
             Eigen::VectorXd torques(dof_, 0);
 
             // Forward Recursion: Compute position and initialize velocity and acceleration
-            for (uint8_t index = 0; index < dof_; ++index) {
+            for (size_t index = 0; index < dof_; ++index) {
                 if (index == 0) {
                     T[index] = computeTransformationMatrix(dhParams_[index], inputJointState_[index].positionAngle);
                     V[index] = Eigen::VectorXd::Zero(6);
@@ -127,16 +123,17 @@ namespace math {
             }
 
             // Backward Recursion: Compute gravitational forces and torques
-            for (uint8_t index = dof_ - 1; index >= 0; --index) {
-                if (index == dof_ - 1) {
+            for (size_t index = dof_ - 1; index-- >0;) {
+                if (index == static_cast<size_t>(dof_-1)) {
                     F[index] = linkParams_[index].inertiaTensor * V[index];
                 } else {
                     F[index] = Adjoint(T[index + 1].transpose()) * F[index + 1] + linkParams_[index].inertiaTensor * V[index];
                 }
-                torques[index] = F[index].transpose() * A_[index];
+                torques[static_cast<long>(index)] = F[index].transpose() * A_[index];
             }
             solutionTorque_ = torques;
         }
+        
 
     }
 

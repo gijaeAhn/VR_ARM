@@ -16,6 +16,7 @@
 
 #ifdef __APPLE__
 #include "/opt/homebrew/Caskroom/miniforge/base/envs/ros_env/include/zmq.hpp"
+#endif
 #ifdef __linux__
 #include <zmq.hpp>
 #endif
@@ -44,7 +45,7 @@ private:
 
     std::string rightHandFrame = "rightHand";
     std::string leftHandFrame = "leftHand";
-    std::string headsetFrame = "headset"
+    std::string headsetFrame = "headset";
 };
 
 #endif // CONTROLLER_LISTENER_HPP

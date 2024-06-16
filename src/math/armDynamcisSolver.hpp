@@ -8,9 +8,10 @@
 #include "Solver.hpp"
 #include "transform.hpp"
 #include "rigidBody.hpp"
+
 #include <Eigen/Dense>
 #include <vector>
-
+#include <memory>
 
 namespace math {
     namespace armDynamics {
@@ -37,6 +38,7 @@ namespace math {
             void setSolverType(DYNAMICS_SOLVE_TYPE solverType);
             void solve() override;
             void getJointState();
+            void setTorques();
 
 
         private:
@@ -52,8 +54,6 @@ namespace math {
             std::shared_ptr<Eigen::VectorXd> torquesPtr_;
             std::vector<JointState> inputJointState_;
             Eigen::VectorXd solutionTorque_;
-            std::mutex inputMutex_;
-            std::mutex torqueMutex_;
 
             //* State Variables
             DYNAMICS_SOLVE_TYPE solverType_;
@@ -73,7 +73,7 @@ namespace math {
             //* Functions
             void calculateTorques();
             void calculateOnlyGComp();
-            void setTorques();
+
 
 
 

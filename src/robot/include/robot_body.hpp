@@ -9,6 +9,7 @@
 #include <array>
 #include <Eigen/Dense>
 #include <thread>
+#include <mutex>
 
 #include "fsm.hpp"
 #include "math/rigidBody.hpp"
@@ -21,6 +22,7 @@
 
 #ifdef __APPLE__
 #include "/opt/homebrew/Caskroom/miniforge/base/envs/ros_env/include/zmq.hpp"
+#endif
 #ifdef __linux__
 #include <zmq.hpp>
 #endif
@@ -63,6 +65,10 @@ namespace robot {
         std::thread dynamicsSolverThread_;
         std::thread zmqThread_;
 
+        std::mutex eeTransformMutex_;
+        std::mutex torqueMutex_;
+        std::mutex jointStateMutex_;
+
 
         //1. Get Transformation function
         //2.
@@ -71,7 +77,7 @@ namespace robot {
 
         //ZMQ
         zmq::socket_t EETransSubSocket_;
-        zmq::socket_t EETransPubSocket_;
+        zmq::socket_t torquePubSocket_;
 
         // Debug Functions
 

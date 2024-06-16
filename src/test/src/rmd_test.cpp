@@ -2,11 +2,8 @@
 // Created by gj on 24. 4. 3.
 //
 
-
-
-
-#include "dependencies/rmd_driver/include/rmd_driver.hpp"
 #include "utilities/include/address.hpp"
+#include "utilities/include/param.hpp"
 
 #include <vector>
 #include <iostream>

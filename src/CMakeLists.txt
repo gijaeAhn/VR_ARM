@@ -15,7 +15,7 @@ add_compile_options(-Wall -Wextra -Wshadow -Wconversion -Wpedantic -Werror)
 
 
 
-set(ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(ROOT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 
 #SET FLAGS
@@ -23,7 +23,12 @@ macro(apply_global_cxx_flags_to_all_targets)
     separate_arguments(_global_cxx_flags_list UNIX_COMMAND ${CMAKE_CXX_FLAGS})
     get_property(_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
     foreach(_target ${_targets})
-        target_compile_options(${_target} PUBLIC ${_global_cxx_flags_list})
+        # Get the target type
+        get_target_property(_type ${_target} TYPE)
+        # Check if the target type is compilable
+        if (_type STREQUAL "EXECUTABLE" OR _type STREQUAL "STATIC_LIBRARY" OR _type STREQUAL "SHARED_LIBRARY" OR _type STREQUAL "MODULE_LIBRARY")
+            target_compile_options(${_target} PUBLIC ${_global_cxx_flags_list})
+        endif()
     endforeach()
     unset(CMAKE_CXX_FLAGS)
     set(_flag_sync_required TRUE)
