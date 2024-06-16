@@ -1,0 +1,9 @@
+{
+    "version": 4,
+    "vendor": {
+        "conan": {}
+    },
+    "include": [
+        "/home/gj/Desktop/VR_ARM/build/Release/generators/CMakePresets.json"
+    ]
+}

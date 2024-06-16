@@ -8,11 +8,11 @@
 
 namespace  robot{
 
-    Robot::Robot(std::vector<math::LinkParam> inputLinkParams,
-                 std::vector<math::DHParam> inputDHParams,
+    Robot::Robot(std::vector<param::LinkParam> inputLinkParams,
+                 std::vector<param::DHParam> inputDHParams,
                  std::vector<Eigen::VectorXd> inputA)
     :EETransformPtr_(std::make_shared<Transform>()),
-     jointStatePtr_(std::make_shared<std::vector<math::JointState>>()),
+     jointStatePtr_(std::make_shared<std::vector<param::JointState>>()),
      torquePtr_(std::make_shared<Eigen::VectorXd>()),
      running_(false),
      ikSolver_(EETransformPtr_,jointStatePtr_,inputDHParams),

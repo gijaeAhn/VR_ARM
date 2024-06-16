@@ -4,3 +4,6 @@ build
 devel
 cmake-build-debug
 .DS_Store
+install
+log
+

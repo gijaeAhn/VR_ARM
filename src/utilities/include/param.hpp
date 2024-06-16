@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <map>
+#include <eigen3/Eigen/Dense>
 
 
 #define  DOF                           6

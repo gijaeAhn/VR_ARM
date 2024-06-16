@@ -17,24 +17,33 @@ find_package(ZeroMQ REQUIRED)
 # Common settings for all executables
 set(COMMON_INCLUDE_DIRS ${ROOT_DIRECTORY})
 
-# List of executables and their sources
 set(EXECUTABLES
-        rmd_test src/rmd_test.cpp
-        motor_test src/motor_test.cpp
-        dynamixel_test src/dynamixel_test.cpp
-        zmq_1 src/zmq_test1.cpp
-        zmq_2 src/zmq_test2.cpp
+    rmd_test src/rmd_test.cpp
+    motor_test src/motor_test.cpp
+    dynamixel_test src/dynamixel_test.cpp
+    zmq_1 src/zmq_test1.cpp
+    zmq_2 src/zmq_test2.cpp
 )
 
-# Create each executable and set common properties
-foreach(EXEC_NAME SRC_FILE IN LISTS EXECUTABLES)
+# Calculating the length of EXECUTABLES
+list(LENGTH EXECUTABLES EXECUTABLES_LENGTH)
+math(EXPR LAST_INDEX "${EXECUTABLES_LENGTH} - 1")
+
+# Correcting the FOREACH loop
+foreach(EXEC_INDEX RANGE 0 ${LAST_INDEX} 2)
+  list(GET EXECUTABLES ${EXEC_INDEX} EXEC_NAME)
+  math(EXPR SRC_INDEX "${EXEC_INDEX} + 1")
+  list(GET EXECUTABLES ${SRC_INDEX} SRC_FILE)
+  
   add_executable(${EXEC_NAME} ${SRC_FILE})
   target_include_directories(${EXEC_NAME} PUBLIC ${COMMON_INCLUDE_DIRS})
-endforeach()
 
-# Specific target link libraries
-target_link_libraries(rmd_test PUBLIC rmd_driver)
-target_link_libraries(motor_test PUBLIC libzmq-static)
-target_link_libraries(dynamixel_test PUBLIC dynamixel_sdk)
-target_link_libraries(zmq_1 PUBLIC libzmq-static)
-target_link_libraries(zmq_2 PUBLIC libzmq-static)
+  # Configure linking specific to each executable
+  if(EXEC_NAME STREQUAL "rmd_test")
+    target_link_libraries(${EXEC_NAME} PUBLIC rmd_driver)
+  elseif(EXEC_NAME STREQUAL "motor_test" OR EXEC_NAME STREQUAL "zmq_1" OR EXEC_NAME STREQUAL "zmq_2")
+    target_link_libraries(${EXEC_NAME} PUBLIC libzmq-static)
+  elseif(EXEC_NAME STREQUAL "dynamixel_test")
+    target_link_libraries(${EXEC_NAME} PUBLIC dynamixel_sdk)
+  endif()
+endforeach()

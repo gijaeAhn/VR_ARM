@@ -26,34 +26,41 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-# List of executables and their sources
+# List of executables and their sources - corrected format
 set(EXECUTABLES
-        rmd_run src/rmd_run.cpp
-        motor_run src/motor_run.cpp
-        dyna_run src/dynamixel_run.cpp
+        rmd_run          src/rmd_run.cpp
+        motor_run        src/motor_run.cpp
+        dyna_run         src/dynamixel_run.cpp
         vr_interface_run src/vr_interface_run.cpp
 )
 
-# Create each executable, set common properties, and link common libraries
-foreach(EXEC_NAME SRC_FILE IN LISTS EXECUTABLES)
+list(LENGTH EXECUTABLES EXECUTABLES_LENGTH)
+math(EXPR LAST_INDEX "${EXECUTABLES_LENGTH} - 1")
+
+foreach(EXEC_INDEX RANGE 0 ${LAST_INDEX} 2)
+  list(GET EXECUTABLES ${EXEC_INDEX} EXEC_NAME)
+  math(EXPR SRC_INDEX "${EXEC_INDEX} + 1")
+  list(GET EXECUTABLES ${SRC_INDEX} SRC_FILE)
+
     add_executable(${EXEC_NAME} ${SRC_FILE})
-    target_compile_features(${EXEC_NAME} PRIVATE cxx_std_17)
     target_include_directories(${EXEC_NAME} PUBLIC ${ROOT_DIRECTORY} ${CMAKE_CURRENT_SOURCE_DIR})
+
+    # Conditionally link libraries based on the executable
+    if(EXEC_NAME STREQUAL "rmd_run")
+        target_link_libraries(${EXEC_NAME} PUBLIC rmd_driver utilities libzmq-static)
+        target_link_directories(${EXEC_NAME} PUBLIC ${math_INCLUDE_DIR} ${utilities_INCLUDE_DIR})
+    elseif(EXEC_NAME STREQUAL "motor_run")
+        target_link_libraries(${EXEC_NAME} PUBLIC utilities libzmq-static)
+        target_link_directories(${EXEC_NAME} PUBLIC ${math_INCLUDE_DIR} ${utilities_INCLUDE_DIR})
+    elseif(EXEC_NAME STREQUAL "dyna_run")
+        target_link_libraries(${EXEC_NAME} PUBLIC utilities dynamixel_sdk libzmq-static)
+        target_link_directories(${EXEC_NAME} PUBLIC ${math_INCLUDE_DIR} ${utilities_INCLUDE_DIR})
+    elseif(EXEC_NAME STREQUAL "vr_interface_run")
+        target_link_libraries(${EXEC_NAME} PUBLIC utilities libzmq-static vr_interface)
+        target_link_directories(${EXEC_NAME} PUBLIC ${math_INCLUDE_DIR} ${utilities_INCLUDE_DIR})
+    endif()
 endforeach()
 
-# Specific target link libraries and directories
-target_link_libraries(rmd_run PUBLIC rmd_driver utilities libzmq-static)
-target_link_directories(rmd_run PUBLIC ${math_INCLUDE_DIR} ${utilities_INCLUDE_DIR})
-
-target_link_libraries(motor_run PUBLIC utilities libzmq-static)
-target_link_directories(motor_run PUBLIC ${math_INCLUDE_DIR} ${utilities_INCLUDE_DIR})
-
-target_link_libraries(dyna_run PUBLIC utilities dynamixel_sdk libzmq-static)
-target_link_directories(dyna_run PUBLIC ${math_INCLUDE_DIR} ${utilities_INCLUDE_DIR})
-
-target_link_libraries(vr_interface_run PUBLIC utilities libzmq-static vr_interface)
-target_link_directories(vr_interface_run PUBLIC ${math_INCLUDE_DIR} ${utilities_INCLUDE_DIR})
-
-# Assuming you have custom macros
+# Custom macros
 apply_global_cxx_flags_to_all_targets()
 remove_flag_from_file(dyna_run src/dynamixel_run.cpp -Werror)

@@ -9,6 +9,7 @@
 //Utilities
 #include "utilities/include/address.hpp"
 #include "utilities/include/timer.hpp"
+#include "utilities/include/param.hpp"
 //ZMQ
 #include "zmq.hpp"
 
@@ -349,4 +350,9 @@ int getch(void) {
     return ch;
 }
 
-
+void signalHandler(int signum)
+{
+    // std::cout << "Interrupt signal (" << signum << " ) recieved.\n" << std::endl; 
+    printf("Interrupt signal (%d) recieve.\n", signum);
+    std::exit(EXIT_SUCCESS);
+}

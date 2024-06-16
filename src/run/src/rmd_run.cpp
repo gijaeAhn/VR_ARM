@@ -1,12 +1,12 @@
 //
 // Created by gj on 24. 3. 5.
 //
-#include "
 #include "driver.hpp"
 #include "feedback.hpp"
 #include "meta/motorParam.hpp"
-
-#include "utilities/
+#include "utilities/include/address.hpp"
+#include "utilities/include/param.hpp"
+#include "utilities/include/timer.hpp"
 
 #include <cmath>
 #include <stdint.h>
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
     previousShaft.fill(0);
     shaftChange.fill(0);
     pidBuffer.fill(0);
-    gravBuffe.fill(0);
+    gravBuffer.fill(0);
     sumBuffer.fill(0);
     angBuffer.fill(0);
     

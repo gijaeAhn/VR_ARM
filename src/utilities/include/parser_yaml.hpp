@@ -9,7 +9,7 @@
 #include "parser.hpp"
 
 #include <yaml-cpp/yaml.h>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
 
 namespace utilities::parser {

@@ -109,7 +109,7 @@ namespace math{
             auto temp = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastTime_);
             double dt = static_cast<double>(temp.count()) / 1000.0;
             lastTime_ = now;
-            std::vector<JointState> tempJointStateList(dof_);
+            std::vector<param::JointState> tempJointStateList(dof_);
 
             // Update jointStates_ with calculated velocities and accelerations
             // Assuming the joint positions are already updated in jointStates_

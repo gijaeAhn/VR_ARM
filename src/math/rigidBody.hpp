@@ -133,7 +133,7 @@ namespace math {
         return R;
     }
 
-    Eigen::Matrix4d computeTransformationMatrix(const para::DHParam& dh, double theta) {
+    Eigen::Matrix4d computeTransformationMatrix(const param::DHParam& dh, double theta) {
         Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
         T.block<3, 3>(0, 0) = computeRotationMatrix(dh.alpha, theta);
         T(0, 3) = dh.a;

@@ -77,7 +77,7 @@ void ControllerListener::on_timer()
     }
 }
 
-zmq::message_t serializeTransform(const geometry_msgs::msg::TransformStamped& transformStamped) {
+zmq::message_t ControllerListener::serializeTransform(const geometry_msgs::msg::TransformStamped& transformStamped) {
     // Extract rotation and translation from the transform
     const auto& rotation = transformStamped.transform.rotation;
     const auto& translation = transformStamped.transform.translation;
