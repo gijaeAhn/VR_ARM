@@ -15,6 +15,9 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <optional>
+
+#include "param.hpp"
 
 namespace utilities {
 
@@ -26,9 +29,9 @@ namespace utilities {
             PARSE_ERROR
         };
 
-        enum WRITE_RESULT{
-            WRITE_SUCCEED,
-            WRITE_FAILURE
+        enum GET_RESULT{
+            GET_SUCCEED,
+            GET_FAILURE
         };
 
         enum PATH_VALIDATION_RESULT {
@@ -42,17 +45,25 @@ namespace utilities {
             NO_PERMISSION
         };
 
+
+
         template<typename Data>
         class Parser {
+
         public:
             Parser() = default;
             virtual ~Parser() = default;
+
+            struct outputDataBundle{
+                Data data;
+                GET_RESULT getResult;
+            };
 
             virtual PERMISSION_CHECK_RESULT permissionCheck();
             virtual PATH_VALIDATION_RESULT getConfigPath(const std::string& configPath);
             virtual PATH_VALIDATION_RESULT getDataSavePath(const std::string& dataSavePath);
             virtual PARSE_RESULT parse();
-            virtual WRITE_RESULT writeData();
+            virtual std::optional<outputDataBundle> getData() = 0;
 
 
         protected:
@@ -62,8 +73,12 @@ namespace utilities {
 
             // Inner Functions
             void saveData(Data inputData);
-
         };
+
+        template<typename Data>
+        std::optional<typename Parser<Data>::outputDataBundle> Parser<Data>::getData() {
+            return Parser<Data>::outputDataBundle();
+        }
 
         template<typename Data>
         void Parser<Data>::saveData(Data inputData) {
