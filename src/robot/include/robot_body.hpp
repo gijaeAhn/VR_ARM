@@ -32,9 +32,11 @@
 namespace robot {
     class Robot {
     public:
-        Robot(std::vector<param::LinkParam> inputLinkParams,
+        Robot(std::string name,
+              std::vector<param::LinkParam> inputLinkParams,
               std::vector<param::DHParam> inputDHParams,
               std::vector<Eigen::VectorXd> inputA);
+
         ~Robot() = default;
 
         void run();
@@ -52,6 +54,7 @@ namespace robot {
 
         Transform EETransform_;
         std::vector<param::JointState> jointState_;
+        std::vector<param::JointState> estimatedJointState_;
         Eigen::VectorXf torque_;
 
 
@@ -70,6 +73,7 @@ namespace robot {
         std::mutex jointStateMutex_;
 
 
+
         //1. Get Transformation function
         //2.
         math::armKinematics::armKinematicsSolver ikSolver_;
@@ -78,13 +82,16 @@ namespace robot {
         //ZMQ
         zmq::socket_t EETransSubSocket_;
         zmq::socket_t torquePubSocket_;
+        zmq::socket_t estimateStateSubSocket_;
 
         // Debug Functions
 
         //Internal Functions
         void getJointStates();
         Transform deserializeTransform(const zmq::message_t& message);
+        std::vector<param::JointState> deserializationJS(const zmq::message_t message);
 
+        std::string name_;
         uint8_t dof_;
 
 

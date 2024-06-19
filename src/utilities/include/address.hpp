@@ -32,6 +32,7 @@
 
 #define  EETRANS_SUB_ADDR              5565
 #define  EETRANS_PUB_ADDR              5566
+#define  ESTIMATE_TORQUE_ADDR          5567
 
 
 

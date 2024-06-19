@@ -24,7 +24,7 @@ include_directories(${ZeroMQ_INCLUDE_DIRS})
 
 
 add_library(robot src/robot_body.cpp
-                  src/robot_builder.cpp)
+)
 
 target_link_libraries(robot Eigen3::Eigen
                             math

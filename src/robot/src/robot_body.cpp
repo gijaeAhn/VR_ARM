@@ -30,16 +30,21 @@ namespace  robot{
         zmq::sockopt::array_option<ZMQ_SUBSCRIBE,1> sockOptSub;
         zmq::sockopt::array_option<ZMQ_PUB,1> sockOptPub;
         std::stringstream eeTransSub;
-        std::stringstream eeTransPub;
+        std::stringstream estimateStateSub;
+        std::stringstream torquePub;
         std::string host = "localhost";
-        eeTransSub << "tcp://" << host << ":" << EETRANS_SUB_ADDR;
-        eeTransPub << "tcp://*" << EETRANS_PUB_ADDR;
+        eeTransSub       << "tcp://" << host << ":" << EETRANS_SUB_ADDR;
+        estimateStateSub << "tcp://" << host << ":" << ESTIMATE_STATE_ADDR;
+        torquePub        << "tcp://*" << TORQUE_PUB_ADDR;
         EETransSubSocket_.connect(eeTransSub.str());
         EETransSubSocket_.set(sockOptSub, "");
+        estimateStateSubSocket_.connect(estimateStateSub.str());
+        estimateStateSubSocket_.set(sockOptSub,"");
         torquePubSocket_.bind(eeTransPub.str());
         torquePubSocket_.set(sockOptPub,"");
-
     }
+
+
 
     void Robot::run() {
 
@@ -98,7 +103,7 @@ namespace  robot{
             auto threadActualDuration = std::chrono::duration_cast<std::chrono::milliseconds>(threadFuncEnd - threadFuncStart);
 
             if (threadActualDuration.count() > ZMQ_THREAD_CYCLE) {
-                std::cout << "Ik Thread Actual Cycle is slower than set Cycle" << std::flush;
+                std::cout << "Ik Thread Actual Cycle is slower than set Cycle : Robot" << std::flush;
             } else {
                 std::this_thread::sleep_for(std::chrono::milliseconds(IK_THREAD_CYCLE) - threadActualDuration);
             }
@@ -129,7 +134,7 @@ namespace  robot{
             auto threadActualDuration = std::chrono::duration_cast<std::chrono::milliseconds>(threadFuncEnd - threadFuncStart);
 
             if (threadActualDuration.count() > ZMQ_THREAD_CYCLE) {
-                std::cout << "Dynamics Thread Actual Cycle is slower than set Cycle" << std::flush;
+                std::cout << "Dynamics Thread Actual Cycle is slower than set Cycle : Robot" << std::flush;
             } else {
                 std::this_thread::sleep_for(std::chrono::milliseconds(ZMQ_THREAD_CYCLE) - threadActualDuration);
             }
@@ -142,8 +147,7 @@ namespace  robot{
             auto threadFuncStart = std::chrono::steady_clock::now();
 
             //Recveing Part
-            zmq::message_t eeTransSub_message(sizeof(float) * 7);
-            zmq::recv_result_t recv_result = EETransSubSocket_.recv(eeTransSub_message, zmq::recv_flags::none);
+
 
             // add Checking code
             // 1. Use Quaternion characteristic
@@ -151,8 +155,10 @@ namespace  robot{
 
             std::unique_lock<std::mutex> lock1(eeTransformMutex_);
             {
+                zmq::message_t eeTransSub_message(sizeof(float) * 7);
+                zmq::recv_result_t recv_result = EETransSubSocket_.recv(eeTransSub_message, zmq::recv_flags::none);
                 if (!(recv_result.has_value() && (recv_result.value() > 0))) {
-                    throw std::runtime_error("Failed to recv TF : Robot");
+                    std::cerr << ("Failed to recv TF : Robot");
                 } else {
                     EETransform_ = deserializeTransform(eeTransSub_message);
                 }
@@ -170,18 +176,34 @@ namespace  robot{
                 std::copy(tempMsgPtr, tempMsgPtr + dof_, torque_.data());
                 zmq::send_result_t send_result = torquePubSocket_.send(torquePub_message, zmq::send_flags::none);
                 if (!(send_result.has_value() && (send_result.value() > 0))) {
-                    throw std::runtime_error("Failed to send Torque : Robot");
+                    std::cerr << ("Failed to send Torque : Robot");
                 } else {
                     // Succeed
                 }
             }
             lock2.unlock();
 
+            std::lock_guard<std::mutex> lock3(jointStateMutex_);
+            {
+                size_t js_message_size = sizeof(float) * dof_ * 3;
+                zmq::message_t estimateStateSub_message(js_message_size);
+                zmq::recv_result_t  recv_result = estimateStateSubSocket_.recv(estimateStateSub_message, zmq::recv_flags::none);
+                if (!(recv_result.has_value() && (recv_result.value() > 0))) {
+                    std::cerr << ("Failed to recv Estimated State : Robot");
+                } else {
+                    estimatedJointState_ =  deserializeJS(estimateStateSub_message);
+                }
+            }
+
+            zmq::message_t robotActualState(sizeof(float)*dof_);
+            recv_result =
+
+
             auto threadFuncEnd = std::chrono::steady_clock::now();
             auto threadActualDuration = std::chrono::duration_cast<std::chrono::milliseconds>(threadFuncEnd - threadFuncStart);
 
             if (threadActualDuration.count() > ZMQ_THREAD_CYCLE) {
-                std::cout << "ZMQ Thread Actual Cycle is slower than set Cycle" << std::flush;
+                std::cout << "ZMQ Thread Actual Cycle is slower than set Cycle : Robot" << std::flush;
             } else {
                 std::this_thread::sleep_for(std::chrono::milliseconds(ZMQ_THREAD_CYCLE) - threadActualDuration);
             }
@@ -190,18 +212,18 @@ namespace  robot{
     }
 
     Transform Robot::deserializeTransform(const zmq::message_t& message){
-        if (message.size() != sizeof(double) * 7) {
-            throw std::runtime_error("Invalid message size for Transform deserialization");
+        if (message.size() != sizeof(ZMQ_PRECISION_TYPE) * 7) {
+            throw std::runtime_error("Invalid message size for Transform deserialization : Robot");
         }
 
-        const double* buffer = reinterpret_cast<const double*>(message.data());
-        double rotationX = buffer[0];
-        double rotationY = buffer[1];
-        double rotationZ = buffer[2];
-        double rotationW = buffer[3];
-        double translationX = buffer[4];
-        double translationY = buffer[5];
-        double translationZ = buffer[6];
+        const float* buffer = reinterpret_cast<const ZMQ_PRECISION_TYPE*>(message.data());
+        ZMQ_PRECISION_TYPE rotationY = buffer[1];
+        ZMQ_PRECISION_TYPE rotationZ = buffer[2];
+        ZMQ_PRECISION_TYPE rotationW = buffer[3];
+        ZMQ_PRECISION_TYPE rotationX = buffer[0];
+        ZMQ_PRECISION_TYPE translationX = buffer[4];
+        ZMQ_PRECISION_TYPE translationY = buffer[5];
+        ZMQ_PRECISION_TYPE translationZ = buffer[6];
 
         Transform transform;
         transform.t = Eigen::Matrix4d::Identity();
@@ -219,5 +241,25 @@ namespace  robot{
         return transform;
     }
 
+    std::vector<param::JointState> Robot::deserializationJS(const zmq::message_t& message) {
+        const ZMQ_PRECISION_TYPE* buffer = reinterpret_cast<const ZMQ_PRECISION_TYPE*>(message.data());
+        size_t expected_size = sizeof(ZMQ_PRECISION_TYPE) * dof_ * 3;
+
+        // Check if the message size is as expected
+        if (message.size() != expected_size) {
+            throw std::runtime_error("Deserialize Joint State from Motor Failed. : Robot");
+        }
+
+        std::vector<param::JointState> temp_js(dof_); // Pre-size the vector to avoid reallocations
+
+        for (size_t i = 0; i < dof_; i++) {
+            size_t base_index = 3 * i;
+            temp_js[i].positionAngle = buffer[base_index];
+            temp_js[i].velocityAngle = buffer[base_index + 1];
+            temp_js[i].accelerationAngle = buffer[base_index + 2];
+        }
+
+        return temp_js;
+    }
 
 }
