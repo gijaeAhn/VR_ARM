@@ -85,7 +85,7 @@ namespace math {
         ad_ret << R[0], zeroes,
                 VecToso3(R[1]) * R[0], R[0];
         return ad_ret;
-    }
+    }z
 
     Eigen::Matrix3d RodriguesFormula(const Eigen::Matrix3d so3, double theta){
         Eigen::Matrix3d result;

@@ -11,6 +11,7 @@
 #include <Eigen/Dense>
 #include <vector>
 #include <memory>
+#include <array>
 
 namespace math {
     namespace armDynamics {
@@ -46,6 +47,7 @@ namespace math {
             void solve() override;
             void getJointState();
             void setTorques();
+            void updateTransList(std::vector<Transform> transList);
 
 
         private:
@@ -54,6 +56,7 @@ namespace math {
             std::vector<param::LinkParam> linkParams_;
             std::vector<param::DHParam> dhParams_;
             std::vector<Eigen::VectorXd> A_;
+            Eigen::MatrixXd AMatrix_;
 
 
             //* Shared Variables
@@ -80,6 +83,9 @@ namespace math {
             //* Functions
             void calculateTorques();
             void calculateOnlyGComp();
+            std::vector<Transform> transList_;
+
+            inline Eigen::MatrixXd makeLMatrix(const std::vector<Transform>& transList);
 
 
 

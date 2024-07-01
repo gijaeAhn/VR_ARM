@@ -82,7 +82,7 @@ namespace robot {
         //ZMQ
         zmq::socket_t EETransSubSocket_;
         zmq::socket_t torquePubSocket_;
-        zmq::socket_t estimateStateSubSocket_;
+        zmq::socket_t estimateStateSubSocket_;git
 
         // Debug Functions
 
