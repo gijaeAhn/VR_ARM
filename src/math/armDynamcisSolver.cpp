@@ -43,7 +43,20 @@ namespace math {
         void armDynamicsSolver::updateTransList(std::vector<Transform> transList) {
             transList_ = transList;
         }
-    }
+
+        void armDynamicsSolver::calculateJacobian() {
+
+        }
+
+        void armDynamicsSolver::calculateTwist() {
+            Eigen::VectorXd thetaDot;
+            thetaDot.resize(dof_);
+            for(size_t index = 0; index < dof_; index++){
+                thetaDot[index] = inputJointState_[index][1];
+            }
+            //Is this 6by6 * 6by 1 or 1by6
+             twistList_ = jacobian_ * thetaDot;
+        }
 
         void armDynamicsSolver::solve() {
             getJointState();
@@ -67,7 +80,7 @@ namespace math {
 
         }
 
-        inline Eigen::MatrixXd makeLMatrix(const std::vector<Transform>& transList) {
+        inline Eigen::MatrixXd armDynamicsSolver::makeLMatrix(const std::vector<Transform>& transList) {
             Eigen::MatrixXd result = Eigen::MatrixXd::Identity(36,36);
             for (std::size_t i = 0; i < 6; i++) {
                 for (std::size_t j = i; j < 6; j++) {
@@ -85,8 +98,69 @@ namespace math {
             return result;
         }
 
-        void armDynamicsSolver::calculateTorques() {
-            
+        inline Eigen::MatrixXd armDynamicsSolver::makeWMatrix(const std::vector <Transform> &transList) {
+            Eigen::MatrixXd result = Eigen::MatrixXd::Identity(36,36);
+        }
+
+
+        inline Eigen::MatrixXd armDynamicsSolver::makeAdAtheta(const std::vector <Eigen::VectorXd> AthetaList) {
+            Eigen::MatrixXd result;
+            for(size_t index =0; index < dof_; index++){
+                result.block<6,6>(6 * index,6 * index) = ad(AthetaList[index] * inputJointState_[index][1]);
+            }
+            return result;
+        }
+
+        inline Eigen::MatrixXd armDynamicsSolver::makeAdV(const std::vector <Eigen::VectorXd> TwistList) {
+            Eigen::MatrixXd result;
+            for(size_t index = 0; index < dof_; index++){
+                result.block<6,6>(6*index, 6*index) = ad(TwistList[index]);
+            }
+            return result;
+        }
+
+
+        Eigen::VectorXd armDynamicsSolver::calculateTorques() {
+            Eigen::MatrixXd lMatrix   = makeLMatrix(transList_);
+            Eigen::MatrixXd adATheta  = makeAdAtheta(A_);
+            Eigen::MatrixXd wMatrix   = makeWMatrix(transList_);
+            Eigen::MatrixXd adVMatrix = makeAdV(twistList_);
+
+
+            Eigen::VectorXd thetaDot;
+            thetaDot.resize(dof_);
+            for(size_t index = 0; index < dof_; index ++){
+                thetaDot[index] = inputJointState_[index][1];
+            }
+
+            Eigen::VectorXd thetaDoubleDot;
+            thetaDoubleDot.resize(dof_);
+            for(size_t index = 0; index < dof_; index ++){
+                thetaDot[index] = inputJointState_[index][2];
+            }
+
+
+
+            Eigen::MatrixXd mMatrix = AMatrix_.transpose()          *
+                                      lMatrix.transpose()           *
+                                      GMatrix_                      *
+                                      lMatrix                       *
+                                      AMatrix_;
+
+            Eigen::MatrixXd cMatrix = AMatrix_.transpose()          *
+                                      lMatrix.transpose()           *
+                                      (GMatrix_                     *
+                                       lMatrix                      *
+                                       adATheta                     *
+                                       wMatrix                      +
+                                       adV.transpose()              *
+                                       GMatrix_)                    *
+                                       lMatrix                      *
+                                       ( AMatrix_ * thetaDot );
+
+            Eigen::VectorXd gCompTorque = calculateOnlyGComp();
+
+            return mMatrix * thetaDoubleDot + cMatrix * thetaDot + gCompTorque;
         }
 
         void armDynamicsSolver::calculateOnlyGComp() {

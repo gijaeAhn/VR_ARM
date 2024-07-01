@@ -212,18 +212,18 @@ namespace  robot{
     }
 
     Transform Robot::deserializeTransform(const zmq::message_t& message){
-        if (message.size() != sizeof(ZMQ_PRECISION_TYPE) * 7) {
+        if (message.size() != sizeof(SYSTEM_PRECISION_TYPE) * 7) {
             throw std::runtime_error("Invalid message size for Transform deserialization : Robot");
         }
 
-        const float* buffer = reinterpret_cast<const ZMQ_PRECISION_TYPE*>(message.data());
-        ZMQ_PRECISION_TYPE rotationY = buffer[1];
-        ZMQ_PRECISION_TYPE rotationZ = buffer[2];
-        ZMQ_PRECISION_TYPE rotationW = buffer[3];
-        ZMQ_PRECISION_TYPE rotationX = buffer[0];
-        ZMQ_PRECISION_TYPE translationX = buffer[4];
-        ZMQ_PRECISION_TYPE translationY = buffer[5];
-        ZMQ_PRECISION_TYPE translationZ = buffer[6];
+        const float* buffer = reinterpret_cast<const SYSTEM_PRECISION_TYPE*>(message.data());
+        SYSTEM_PRECISION_TYPE rotationY = buffer[1];
+        SYSTEM_PRECISION_TYPE rotationZ = buffer[2];
+        SYSTEM_PRECISION_TYPE rotationW = buffer[3];
+        SYSTEM_PRECISION_TYPE rotationX = buffer[0];
+        SYSTEM_PRECISION_TYPE translationX = buffer[4];
+        SYSTEM_PRECISION_TYPE translationY = buffer[5];
+        SYSTEM_PRECISION_TYPE translationZ = buffer[6];
 
         Transform transform;
         transform.t = Eigen::Matrix4d::Identity();
@@ -242,8 +242,8 @@ namespace  robot{
     }
 
     std::vector<param::JointState> Robot::deserializationJS(const zmq::message_t& message) {
-        const ZMQ_PRECISION_TYPE* buffer = reinterpret_cast<const ZMQ_PRECISION_TYPE*>(message.data());
-        size_t expected_size = sizeof(ZMQ_PRECISION_TYPE) * dof_ * 3;
+        const SYSTEM_PRECISION_TYPE* buffer = reinterpret_cast<const SYSTEM_PRECISION_TYPE*>(message.data());
+        size_t expected_size = sizeof(SYSTEM_PRECISION_TYPE_PRECISION_TYPE) * dof_ * 3;
 
         // Check if the message size is as expected
         if (message.size() != expected_size) {

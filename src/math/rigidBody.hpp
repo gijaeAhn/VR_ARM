@@ -38,7 +38,7 @@ namespace math {
         return v_ret;
     }
 
-    Eigen::MatrixXd ad(Eigen::VectorXd V) {
+    Eigen::MatrixXd ad(const Eigen::VectorXd V) {
         Eigen::Matrix3d omgmat = VecToso3(Eigen::Vector3d(V(0), V(1), V(2)));
 
         Eigen::MatrixXd result(6, 6);

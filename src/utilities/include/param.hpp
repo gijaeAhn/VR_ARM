@@ -25,9 +25,9 @@
 #define MAX_QUEUE_SIZE                 10
 
 #ifdef USE_DOUBLE_PRECISION
-#define ZMQ_PRECISION_TYPE double
+#define SYSTEM_PRECISION_TYPE double
 #else
-#define ZMQ_PRECISION_TYPE float
+#define SYSTEM_PRECISION_TYPE float
 #endif
 
 namespace param {
@@ -42,9 +42,9 @@ namespace param {
     };
 
     struct JointState {
-        ZMQ_PRECISION_TYPE1 positionAngle;
-        ZMQ_PRECISION_TYPE1 velocityAngle;
-        ZMQ_PRECISION_TYPE1 accelerationAngle;
+        SYSTEM_PRECISION_TYPE1 positionAngle;
+        SYSTEM_PRECISION_TYPE1 velocityAngle;
+        SYSTEM_PRECISION_TYPE1 accelerationAngle;
     };
 
     struct ArmConfigParam{

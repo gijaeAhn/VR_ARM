@@ -57,6 +57,10 @@ namespace math {
             std::vector<param::DHParam> dhParams_;
             std::vector<Eigen::VectorXd> A_;
             Eigen::MatrixXd AMatrix_;
+            Eigne::MatrixXd GMatrix_;
+            std::vector<Transform> transList_;
+            Eigen::MatrixXd jacobian_;
+            std::vector<Eigen::VectorXd> twistList_;
 
 
             //* Shared Variables
@@ -81,11 +85,17 @@ namespace math {
             //*//
 
             //* Functions
-            void calculateTorques();
-            void calculateOnlyGComp();
-            std::vector<Transform> transList_;
+            Eigen::VectorXd calculateTorques();
+            Eigen::VectorXd calculateOnlyGComp();
+            void calculateJacobian();
+            void calculateTwist();
+
+
 
             inline Eigen::MatrixXd makeLMatrix(const std::vector<Transform>& transList);
+            inline Eigen::MatrixXd makeWMatrix(const std::vector<Transform>& transList);
+            inline Eigen::MatrixXd makeAdAtheta(const std::vector<Eigen::VectorXd> AthetaList);
+            inline Eigen::MatrixXd makeAdV(const std::vector<Eigen::VectorXd> TwistList);
 
 
 
