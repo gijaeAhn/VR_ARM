@@ -36,27 +36,6 @@
 #include <termios.h>
 //SDK
 #include "dependencies/dynamixel_sdk/include/dynamixel_sdk/dynamixel_sdk.h"
-//Utilities
-#include "utilities/include/address.hpp"
-#include "utilities/include/timer.hpp"
-//ZMQ
-#include "zmq.hpp"
-
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string>
-#include <vector>
-#include <cstdint>
-#include <array>
-#include <signal.h>
-#include <utility>
-#include <algorithm>
-#include <csignal>
-#include <cstdint>
-#include <math.h>
-#include <mutex>
 
 //////// RMD CONFIGURATION
 
