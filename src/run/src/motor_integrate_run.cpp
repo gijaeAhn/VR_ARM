@@ -151,7 +151,6 @@ int main(int argc, char* argv){
     shaftChange.fill(0);
     torqueBuffer.fill(0);
     std::int16_t sendTorque = 0;
-    std::uint16_t freqCalc = 0;
     std::uint16_t freqSample = DEBUQ_FREQ;
 
 

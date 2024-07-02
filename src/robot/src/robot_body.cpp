@@ -48,7 +48,7 @@ namespace  robot{
 
     void Robot::run() {
 
-        // There are 3 functions which should be running on threads
+        // 3 functinos is running on threads
         // 1. IK Solver
         // 2. Dynamics Solver
         // 3. Motor Torque Message
